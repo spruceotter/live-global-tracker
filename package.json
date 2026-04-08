@@ -1,0 +1,29 @@
+{
+  "name": "live-global-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"tsx watch server/index.ts\" \"vite\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch server/index.ts",
+    "server": "tsx server/index.ts",
+    "build": "tsc && vite build",
+    "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
+    "preview": "vite preview",
+    "start": "concurrently \"tsx watch server/index.ts\" \"vite\""
+  },
+  "dependencies": {
+    "cesium": "^1.119",
+    "express": "^4.21",
+    "satellite.js": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17",
+    "concurrently": "^9.1",
+    "tsx": "^4.19",
+    "typescript": "^5.4",
+    "vite": "^5.4",
+    "vite-plugin-cesium": "^1.2"
+  }
+}

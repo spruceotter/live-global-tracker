@@ -1,0 +1,92 @@
+:root {
+  /* Fonts */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-data: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Type scale */
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+
+  /* Tracking */
+  --tracking-wide: 0.02em;
+  --tracking-wider: 0.06em;
+  --tracking-widest: 0.12em;
+
+  /* Background */
+  --bg-void: #000000;
+  --bg-base: #06080f;
+  --bg-surface: #0a0e17;
+  --bg-elevated: #0f1420;
+  --bg-overlay: #141a28;
+
+  /* Text */
+  --text-primary: #e0e6f0;
+  --text-secondary: #8893a7;
+  --text-tertiary: #4a5568;
+  --text-ghost: rgba(255, 255, 255, 0.25);
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-emphasis: rgba(255, 255, 255, 0.12);
+
+  /* Satellite colors */
+  --sat-iss: #fbbf24;
+  --sat-starlink: #c4b5fd;
+  --sat-gps: #34d399;
+  --sat-weather: #38bdf8;
+  --sat-default: #a78bfa;
+
+  /* Aircraft altitude gradient */
+  --air-high: #60a5fa;
+  --air-mid: #38bdf8;
+  --air-low: #22d3ee;
+
+  /* Earthquake depth gradient */
+  --quake-shallow: #ef4444;
+  --quake-mid: #f97316;
+  --quake-deep: #eab308;
+
+  /* Fire intensity gradient */
+  --fire-high: #ef4444;
+  --fire-mid: #f97316;
+  --fire-low: #fbbf24;
+
+  /* Weather */
+  --weather-precip: #3b82f6;
+  --weather-cloud: #94a3b8;
+
+  /* System accent */
+  --accent-primary: #60a5fa;
+  --accent-secondary: #a78bfa;
+  --accent-success: #34d399;
+  --accent-warning: #fbbf24;
+  --accent-danger: #ef4444;
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-cinematic: cubic-bezier(0.25, 0.0, 0.15, 1.0);
+
+  /* Duration */
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-cinematic: 800ms;
+
+  /* Z-index */
+  --z-globe: 0;
+  --z-layer-panel: 20;
+  --z-header: 30;
+  --z-stats: 30;
+  --z-tooltip: 40;
+  --z-info-card: 50;
+  --z-deep-panel: 60;
+  --z-notification: 70;
+  --z-search: 80;
+  --z-settings: 90;
+}
