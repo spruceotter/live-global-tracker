@@ -47,6 +47,10 @@ export async function initViewer(containerId: string): Promise<Cesium.Viewer> {
     });
   }
 
+  // Terrain exaggeration for dramatic mountain relief
+  viewer.scene.verticalExaggeration = 1.5;
+  viewer.scene.verticalExaggerationRelativeHeight = 0;
+
   // Cinematic atmosphere
   viewer.scene.globe.enableLighting = true;
   viewer.scene.globe.dynamicAtmosphereLighting = true;

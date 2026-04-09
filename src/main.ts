@@ -7,6 +7,7 @@ import './styles/search.css';
 import './styles/settings.css';
 import './styles/loading.css';
 import './styles/hud.css';
+import './styles/responsive.css';
 import './styles/cesium-overrides.css';
 
 import { registerBuiltinRenderers } from './rendering/registerBuiltins';
@@ -15,6 +16,8 @@ import { playCameraIntro } from './viewer/cameraSequence';
 import { setupAutoRotate } from './viewer/autoRotate';
 import { setupClickHandler } from './viewer/clickHandler';
 import { setupZoomController } from './viewer/zoomController';
+import { setup3DBuildings } from './viewer/buildings3d';
+import { setupUrlState } from './viewer/urlState';
 import { LayerManager } from './core/LayerManager';
 import { SatelliteLayer } from './layers/satellites/SatelliteLayer';
 import { AircraftLayer } from './layers/aircraft/AircraftLayer';
@@ -95,6 +98,8 @@ async function main() {
 
   setupAutoRotate(viewer);
   setupZoomController(viewer, manager);
+  setup3DBuildings(viewer);
+  setupUrlState(viewer, manager);
 
   // HUD UI
   const settingsDrawer = new SettingsDrawer();

@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
 import type { LayerManager } from '../core/LayerManager';
+import { set3DBuildingsVisible, is3DBuildingsAvailable } from './buildings3d';
 
 export type ZoomLevel = 'orbital' | 'continental' | 'regional' | 'local';
 
@@ -9,13 +10,13 @@ const THRESHOLDS = {
   regional: 100_000,
 };
 
-// Layers hidden above these altitudes (meters)
 const LAYER_HIDE_ABOVE: Record<string, number> = {};
 
-// Layers hidden below these altitudes
 const LAYER_HIDE_BELOW: Record<string, number> = {
-  satellites: 200_000,  // hide satellites when zoomed into a city
+  satellites: 200_000,
 };
+
+const BUILDINGS_THRESHOLD = 50_000; // Show 3D buildings below 50km
 
 export function setupZoomController(
   viewer: Cesium.Viewer,
@@ -35,7 +36,7 @@ export function setupZoomController(
     if (newLevel === currentLevel) return;
     currentLevel = newLevel;
 
-    // Apply visibility rules
+    // Data layer visibility
     for (const layer of manager.getAll()) {
       const id = layer.manifest.id;
       const hideAbove = LAYER_HIDE_ABOVE[id];
@@ -46,9 +47,13 @@ export function setupZoomController(
       } else if (hideBelow && height < hideBelow) {
         layer.setVisible(false);
       } else if (layer.getLastUpdated() !== null) {
-        // Only re-show if the layer was previously initialized
         layer.setVisible(true);
       }
+    }
+
+    // 3D buildings at local zoom
+    if (is3DBuildingsAvailable()) {
+      set3DBuildingsVisible(height < BUILDINGS_THRESHOLD);
     }
   };
 
