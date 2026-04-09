@@ -86,6 +86,10 @@ export interface LayerManifest {
   order: number;
 }
 
+// --- Layer Status ---
+
+export type LayerStatus = 'idle' | 'loading' | 'loaded' | 'error';
+
 // --- Layer Interface ---
 
 export interface IDataLayer {
@@ -94,11 +98,14 @@ export interface IDataLayer {
   initialize(viewer: Cesium.Viewer): Promise<void>;
   update(): Promise<void>;
   destroy(): void;
+  retry(): Promise<void>;
 
   setVisible(visible: boolean): void;
   isVisible(): boolean;
   getFeatureCount(): number;
   getLastUpdated(): Date | null;
+  getStatus(): LayerStatus;
+  getError(): string | null;
 
   setDisplayLimit(limit: number): void;
   getMaxEntities(): number;

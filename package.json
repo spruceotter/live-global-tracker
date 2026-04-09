@@ -10,6 +10,8 @@
     "server": "tsx server/index.ts",
     "build": "tsc && vite build",
     "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "start": "concurrently \"tsx watch server/index.ts\" \"vite\""
   },
@@ -24,6 +26,7 @@
     "tsx": "^4.19",
     "typescript": "^5.4",
     "vite": "^5.4",
-    "vite-plugin-cesium": "^1.2"
+    "vite-plugin-cesium": "^1.2",
+    "vitest": "^4.1.3"
   }
 }

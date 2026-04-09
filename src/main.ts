@@ -5,6 +5,7 @@ import './styles/glass.css';
 import './styles/panels.css';
 import './styles/search.css';
 import './styles/settings.css';
+import './styles/loading.css';
 import './styles/cesium-overrides.css';
 
 import { initViewer } from './viewer/initViewer';
@@ -24,6 +25,8 @@ import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
 import { SearchOverlay } from './ui/SearchOverlay';
 import { SettingsDrawer } from './ui/SettingsDrawer';
+import { LoadingOverlay } from './ui/LoadingOverlay';
+import { ProximityTooltip } from './ui/ProximityTooltip';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -70,6 +73,10 @@ async function main() {
   manager.register(new FireLayer());
   manager.register(new WeatherLayer());
 
+  // Show loading overlay before data fetch
+  const loadingOverlay = new LoadingOverlay();
+  loadingOverlay.track(manager);
+
   // Camera intro + data loading in parallel
   await Promise.all([
     playCameraIntro(viewer),
@@ -86,6 +93,7 @@ async function main() {
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
   new SearchOverlay(viewer, manager);
+  new ProximityTooltip(viewer, manager);
   new LayerPanel(manager);
 
   const statsBar = new StatsBar();

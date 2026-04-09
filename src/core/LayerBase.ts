@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import type { IDataLayer, LayerManifest, NormalizedFeature } from './types';
+import type { IDataLayer, LayerManifest, LayerStatus, NormalizedFeature } from './types';
 
 export abstract class LayerBase implements IDataLayer {
   abstract readonly manifest: LayerManifest;
@@ -11,6 +11,8 @@ export abstract class LayerBase implements IDataLayer {
   protected lastUpdated: Date | null = null;
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
   private _displayLimit: number = Infinity;
+  private _status: LayerStatus = 'idle';
+  private _error: string | null = null;
 
   async initialize(viewer: Cesium.Viewer): Promise<void> {
     this.viewer = viewer;
@@ -20,6 +22,8 @@ export abstract class LayerBase implements IDataLayer {
   }
 
   async update(): Promise<void> {
+    this._status = 'loading';
+    this._error = null;
     try {
       const raw = await this.fetchData();
       this.allFeatures = this.normalize(raw);
@@ -28,9 +32,24 @@ export abstract class LayerBase implements IDataLayer {
         : this.allFeatures;
       this.lastUpdated = new Date();
       this.render(this.features);
+      this._status = 'loaded';
     } catch (err) {
+      this._status = 'error';
+      this._error = (err as Error).message ?? 'Unknown error';
       console.error(`[${this.manifest.id}] Update failed:`, err);
     }
+  }
+
+  getStatus(): LayerStatus {
+    return this._status;
+  }
+
+  getError(): string | null {
+    return this._error;
+  }
+
+  async retry(): Promise<void> {
+    await this.update();
   }
 
   setDisplayLimit(limit: number): void {
@@ -91,16 +110,12 @@ export abstract class LayerBase implements IDataLayer {
       }));
   }
 
-  // --- Abstract hooks for subclasses ---
-
   protected abstract setupRenderer(): void;
   protected abstract fetchData(): Promise<unknown>;
   protected abstract normalize(raw: unknown): NormalizedFeature[];
   protected abstract render(features: NormalizedFeature[]): void;
   protected abstract clearRenderer(): void;
   protected abstract applyVisibility(visible: boolean): void;
-
-  // --- Private helpers ---
 
   private startRefresh(): void {
     if (this.manifest.refresh.kind === 'poll') {
