@@ -6,9 +6,11 @@ export abstract class LayerBase implements IDataLayer {
 
   protected viewer!: Cesium.Viewer;
   protected features: NormalizedFeature[] = [];
+  protected allFeatures: NormalizedFeature[] = [];
   protected visible = true;
   protected lastUpdated: Date | null = null;
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
+  private _displayLimit: number = Infinity;
 
   async initialize(viewer: Cesium.Viewer): Promise<void> {
     this.viewer = viewer;
@@ -20,12 +22,29 @@ export abstract class LayerBase implements IDataLayer {
   async update(): Promise<void> {
     try {
       const raw = await this.fetchData();
-      this.features = this.normalize(raw);
+      this.allFeatures = this.normalize(raw);
+      this.features = this._displayLimit < this.allFeatures.length
+        ? this.allFeatures.slice(0, this._displayLimit)
+        : this.allFeatures;
       this.lastUpdated = new Date();
       this.render(this.features);
     } catch (err) {
       console.error(`[${this.manifest.id}] Update failed:`, err);
     }
+  }
+
+  setDisplayLimit(limit: number): void {
+    this._displayLimit = limit;
+    this.features = this.allFeatures.slice(0, limit);
+    this.render(this.features);
+  }
+
+  getMaxEntities(): number {
+    return this.manifest.rendering.maxEntities;
+  }
+
+  getTotalAvailable(): number {
+    return this.allFeatures.length;
   }
 
   destroy(): void {

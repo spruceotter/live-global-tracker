@@ -100,6 +100,10 @@ export interface IDataLayer {
   getFeatureCount(): number;
   getLastUpdated(): Date | null;
 
+  setDisplayLimit(limit: number): void;
+  getMaxEntities(): number;
+  getTotalAvailable(): number;
+
   getFeatureById(id: string): NormalizedFeature | null;
   search(query: string): Array<{ id: string; label: string; lat: number; lon: number; alt?: number }>;
 }

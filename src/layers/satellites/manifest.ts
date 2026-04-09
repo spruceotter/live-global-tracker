@@ -16,7 +16,7 @@ export const satelliteManifest: LayerManifest = {
 
   rendering: {
     strategy: 'point-cloud',
-    maxEntities: 25_000,
+    maxEntities: 10_000,
     style: {
       attribute: 'category',
       stops: [

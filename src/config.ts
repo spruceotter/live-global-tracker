@@ -15,9 +15,9 @@ export const config = {
   maxFires: 15_000,
 
   // Satellite groups to fetch from CelesTrak
-  // 'active' = full catalog (~8000+), 'stations' = ISS+related (~31)
-  // 'starlink' = SpaceX Starlink (~6000), 'gps-ops' = GPS constellation (~31)
-  satelliteGroups: ['active', 'starlink', 'gps-ops'],
+  // 'stations' = ISS+crewed (~31), 'starlink' = SpaceX (~6000)
+  // 'gps-ops' = GPS (~31), 'active' = full catalog (~8000+)
+  satelliteGroups: ['stations', 'starlink', 'gps-ops'],
 } as const;
 
 export function getStoredKey(name: string): string {

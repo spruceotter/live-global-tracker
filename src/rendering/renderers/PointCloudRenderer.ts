@@ -58,6 +58,14 @@ export class PointCloudRenderer {
     this.collection.show = visible;
   }
 
+  setOpacity(opacity: number): void {
+    for (let i = 0; i < this.collection.length; i++) {
+      const p = this.collection.get(i);
+      const c = p.color;
+      p.color = Cesium.Color.fromAlpha(c, opacity);
+    }
+  }
+
   getFeatureIdAtIndex(index: number): string | undefined {
     return this.featureIds[index];
   }

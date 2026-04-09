@@ -46,6 +46,9 @@
   text-transform: uppercase;
   transition: all var(--duration-fast) var(--ease-out-expo);
   white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .layer-toggle:hover {
