@@ -25,6 +25,15 @@ export function buildProxyRouter(): Router {
       try {
         const response = await fetch(upstreamUrl);
         if (!response.ok) {
+          // On 429, serve stale cache if available
+          if (response.status === 429) {
+            const stale = cache.getStale(cacheKey);
+            if (stale) {
+              console.warn(`[proxy] ${source.route}: 429 rate limited, serving stale cache`);
+              res.type(source.contentType === 'json' ? 'application/json' : 'text/plain');
+              return res.send(stale);
+            }
+          }
           throw new Error(`Upstream ${response.status}: ${response.statusText}`);
         }
 

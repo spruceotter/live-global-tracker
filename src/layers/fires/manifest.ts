@@ -46,6 +46,6 @@ export const fireManifest: LayerManifest = {
   },
 
   requiredKeys: ['VITE_FIRMS_API_KEY'],
-  defaultEnabled: false,
+  defaultEnabled: true,
   order: 4,
 };

@@ -8,7 +8,7 @@ export const volcanoManifest: LayerManifest = {
   description: 'Active and Holocene volcanoes from the Smithsonian Global Volcanism Program',
 
   source: {
-    url: 'https://volcano.si.edu/database/webservices.cfm?vq=holocene&format=json',
+    url: 'https://volcanoes.usgs.gov/vsc/api/volcanoApi/volcanoesGVP',
     format: 'json',
     proxied: false,
     auth: { kind: 'none' },
@@ -45,6 +45,6 @@ export const volcanoManifest: LayerManifest = {
   },
 
   requiredKeys: [],
-  defaultEnabled: false,
+  defaultEnabled: true,
   order: 7,
 };
