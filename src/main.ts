@@ -23,6 +23,8 @@ import { FireLayer } from './layers/fires/FireLayer';
 import { WeatherLayer } from './layers/weather/WeatherLayer';
 import { NightLightsLayer } from './layers/nightlights/NightLightsLayer';
 import { VolcanoLayer } from './layers/volcanoes/VolcanoLayer';
+import { WeatherAlertsLayer } from './layers/weatheralerts/WeatherAlertsLayer';
+import { GdacsLayer } from './layers/gdacs/GdacsLayer';
 import { AppHeader } from './ui/AppHeader';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
@@ -78,6 +80,8 @@ async function main() {
   manager.register(new WeatherLayer());
   manager.register(new NightLightsLayer());
   manager.register(new VolcanoLayer());
+  manager.register(new WeatherAlertsLayer());
+  manager.register(new GdacsLayer());
 
   // Loading overlay
   const loadingOverlay = new LoadingOverlay();

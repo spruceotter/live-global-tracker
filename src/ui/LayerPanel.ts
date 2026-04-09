@@ -22,6 +22,8 @@ const LAYER_COLORS: Record<string, [string, string]> = {
   weather: ['#94a3b8', 'rgba(148,163,184,0.25)'],
   nightlights: ['#fbbf24', 'rgba(251,191,36,0.25)'],
   volcanoes: ['#dc2626', 'rgba(220,38,38,0.25)'],
+  weatheralerts: ['#f59e0b', 'rgba(245,158,11,0.25)'],
+  gdacs: ['#ec4899', 'rgba(236,72,153,0.25)'],
 };
 
 export class LayerPanel {
