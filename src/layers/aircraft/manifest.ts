@@ -15,17 +15,23 @@ export const aircraftManifest: LayerManifest = {
   },
 
   rendering: {
-    strategy: 'point-cloud',
+    strategy: 'billboard',
     maxEntities: 8_000,
     style: {
       attribute: 'category',
       stops: [
-        { value: 'high', color: '#60a5fa', size: 3 },
-        { value: 'mid', color: '#38bdf8', size: 3 },
-        { value: 'low', color: '#22d3ee', size: 3 },
+        { value: 'high', color: '#60a5fa', size: 6 },
+        { value: 'mid', color: '#38bdf8', size: 6 },
+        { value: 'low', color: '#22d3ee', size: 6 },
       ],
       defaultColor: '#60a5fa',
-      defaultSize: 3,
+      defaultSize: 6,
+      visual: {
+        point: {
+          shape: 'directional-arrow',
+          rotation: { attr: 'heading' },
+        },
+      },
     },
     lod: {},
   },

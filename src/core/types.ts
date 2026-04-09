@@ -4,7 +4,51 @@ import type * as Cesium from 'cesium';
 
 export type DataFormat = 'json' | 'csv' | 'geojson' | 'tle' | 'tiles';
 
-export type RenderStrategy = 'point-cloud' | 'entity' | 'imagery';
+export type RenderStrategy =
+  | 'point-cloud'
+  | 'billboard'
+  | 'polyline'
+  | 'polygon'
+  | 'heatmap'
+  | 'entity'
+  | 'imagery';
+
+// --- Geometry ---
+
+export interface LinestringGeometry {
+  type: 'linestring';
+  coordinates: Array<[number, number, number?]>; // [lon, lat, alt?]
+}
+
+export interface PolygonGeometry {
+  type: 'polygon';
+  coordinates: Array<Array<[number, number]>>; // outer ring, optional holes
+}
+
+export type FeatureGeometry = LinestringGeometry | PolygonGeometry;
+
+// --- Visual Presets ---
+
+export type PointShape = 'dot' | 'circle' | 'glow' | 'pulse' | 'directional-arrow' | 'icon';
+
+export interface PointVisualConfig {
+  shape: PointShape;
+  rotation?: { attr: string; offset?: number };
+  icon?: string;
+}
+
+export type LineShape = 'solid' | 'dashed' | 'glow' | 'animated-flow';
+
+export interface LineVisualConfig {
+  shape: LineShape;
+  width?: number;
+  glowPower?: number;
+}
+
+export interface VisualPresetConfig {
+  point?: PointVisualConfig;
+  line?: LineVisualConfig;
+}
 
 // --- Styling ---
 
@@ -19,6 +63,7 @@ export interface StyleRule {
   stops: StyleStop[];
   defaultColor: string;
   defaultSize: number;
+  visual?: VisualPresetConfig;
 }
 
 // --- Interaction ---
@@ -40,6 +85,7 @@ export interface NormalizedFeature {
   category: string;
   label?: string;
   properties: Record<string, unknown>;
+  geometry?: FeatureGeometry;
 }
 
 // --- Layer Manifest ---

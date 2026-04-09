@@ -1,12 +1,11 @@
 import * as Cesium from 'cesium';
 import type { LayerManager } from '../core/LayerManager';
-import type { PointCloudRenderer } from '../rendering/renderers/PointCloudRenderer';
+import type { IRenderer } from '../rendering/RendererRegistry';
 
 export class ProximityTooltip {
   private el: HTMLElement;
   private viewer: Cesium.Viewer;
   private manager: LayerManager;
-  private rafId: number | null = null;
   private lastPickTime = 0;
 
   constructor(viewer: Cesium.Viewer, manager: LayerManager) {
@@ -27,7 +26,6 @@ export class ProximityTooltip {
   }
 
   private onMouseMove(position: Cesium.Cartesian2): void {
-    // Throttle to ~20fps
     const now = performance.now();
     if (now - this.lastPickTime < 50) return;
     this.lastPickTime = now;
@@ -50,36 +48,22 @@ export class ProximityTooltip {
           const layer = this.manager.getById(layerId);
           const feature = layer?.getFeatureById(featureId);
           if (feature) {
-            const mag = feature.properties.mag;
-            const depth = feature.properties.depth;
-            label = `${feature.label} \u2014 M${mag}, ${depth}km depth`;
+            label = this.formatLabel(layerId, feature);
           }
         }
       }
     }
 
-    // PointPrimitive (satellites, aircraft, fires)
-    if (!label && picked.collection instanceof Cesium.PointPrimitiveCollection) {
-      const point = picked.primitive;
-      const idx = (point as unknown as { _index: number })._index ?? -1;
-      if (idx >= 0) {
-        for (const layer of this.manager.getAll()) {
-          const layerAny = layer as unknown as { renderer?: PointCloudRenderer };
-          if (layerAny.renderer && layerAny.renderer.getCollection?.() === picked.collection) {
-            const fid = layerAny.renderer!.getFeatureIdAtIndex(idx);
-            const feature = fid ? layer.getFeatureById(fid) : null;
+    // Generic renderer pick (PointCloud, Billboard, etc.)
+    if (!label) {
+      for (const layer of this.manager.getAll()) {
+        const renderer = (layer as unknown as { renderer?: IRenderer }).renderer;
+        if (renderer?.ownsPickedObject) {
+          const match = renderer.ownsPickedObject(picked as unknown as Record<string, unknown>);
+          if (match) {
+            const feature = layer.getFeatureById(match.featureId);
             if (feature) {
-              if (layer.manifest.id === 'satellites') {
-                const alt = feature.properties.altKm;
-                label = `${feature.label} \u2014 ${alt} km`;
-              } else if (layer.manifest.id === 'aircraft') {
-                label = `${feature.label} \u2014 ${feature.properties.altitude}`;
-              } else if (layer.manifest.id === 'fires') {
-                const frp = feature.properties.frp;
-                label = `Fire \u2014 FRP ${frp} MW`;
-              } else {
-                label = feature.label ?? feature.id;
-              }
+              label = this.formatLabel(layer.manifest.id, feature);
             }
             break;
           }
@@ -94,6 +78,22 @@ export class ProximityTooltip {
     }
   }
 
+  private formatLabel(layerId: string, feature: { label?: string; id: string; properties: Record<string, unknown> }): string {
+    if (layerId === 'satellites') {
+      return `${feature.label} \u2014 ${feature.properties.altKm} km`;
+    }
+    if (layerId === 'aircraft') {
+      return `${feature.label} \u2014 ${feature.properties.altitude}`;
+    }
+    if (layerId === 'earthquakes') {
+      return `${feature.label} \u2014 M${feature.properties.mag}, ${feature.properties.depth}km`;
+    }
+    if (layerId === 'fires') {
+      return `Fire \u2014 FRP ${feature.properties.frp} MW`;
+    }
+    return feature.label ?? feature.id;
+  }
+
   private show(text: string, position: Cesium.Cartesian2): void {
     this.el.textContent = text;
     this.el.classList.add('visible');
@@ -106,7 +106,6 @@ export class ProximityTooltip {
   }
 
   destroy(): void {
-    if (this.rafId) cancelAnimationFrame(this.rafId);
     this.el.remove();
   }
 }

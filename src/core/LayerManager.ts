@@ -1,5 +1,6 @@
 import type * as Cesium from 'cesium';
-import type { IDataLayer } from './types';
+import type { IDataLayer, LayerManifest } from './types';
+import { ManifestLayer } from './ManifestLayer';
 
 export class LayerManager {
   private layers: IDataLayer[] = [];
@@ -11,6 +12,10 @@ export class LayerManager {
 
   register(layer: IDataLayer): void {
     this.layers.push(layer);
+  }
+
+  registerFromManifest(manifest: LayerManifest): void {
+    this.layers.push(new ManifestLayer(manifest));
   }
 
   async initializeAll(): Promise<void> {

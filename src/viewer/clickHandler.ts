@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import type { LayerManager } from '../core/LayerManager';
 import type { InfoCard } from '../ui/InfoCard';
-import type { PointCloudRenderer } from '../rendering/renderers/PointCloudRenderer';
+import type { IRenderer } from '../rendering/RendererRegistry';
 import type { SatelliteLayer } from '../layers/satellites/SatelliteLayer';
 
 export function setupClickHandler(
@@ -15,7 +15,7 @@ export function setupClickHandler(
     const picked = viewer.scene.pick(movement.position);
 
     // Clear satellite orbit on any click
-    const satLayer = manager.getById('satellites') as SatelliteLayer | undefined;
+    const satLayer = manager.getById('satellites');
     if (satLayer && 'clearOrbit' in satLayer) {
       (satLayer as SatelliteLayer).clearOrbit();
     }
@@ -25,7 +25,7 @@ export function setupClickHandler(
       return;
     }
 
-    // Check if it's an Entity (earthquakes use CustomDataSource entities)
+    // Check Entity (earthquakes use CustomDataSource entities)
     if (picked.id && picked.id instanceof Cesium.Entity) {
       const entity = picked.id;
       const props = entity.properties;
@@ -38,6 +38,9 @@ export function setupClickHandler(
             const feature = layer.getFeatureById(featureId);
             if (feature) {
               infoCard.show(feature, layer.manifest.interaction.detailFields, layer.manifest.id);
+              if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {
+                (layer as unknown as SatelliteLayer).showOrbit(featureId);
+              }
               return;
             }
           }
@@ -45,35 +48,19 @@ export function setupClickHandler(
       }
     }
 
-    // Check if it's a PointPrimitive (satellites, aircraft, fires)
-    if (picked.collection instanceof Cesium.PointPrimitiveCollection) {
-      const collection = picked.collection;
-      const point = picked.primitive;
-      const pointIndex = (point as unknown as { _index: number })._index ?? -1;
-      if (pointIndex < 0) {
-        infoCard.close();
-        return;
-      }
-
-      for (const layer of manager.getAll()) {
-        const layerAny = layer as unknown as { renderer?: PointCloudRenderer };
-        if (
-          layerAny.renderer &&
-          typeof layerAny.renderer.getCollection === 'function' &&
-          layerAny.renderer.getCollection() === collection
-        ) {
-          const featureId = layerAny.renderer.getFeatureIdAtIndex(pointIndex);
-          if (featureId) {
-            const feature = layer.getFeatureById(featureId);
-            if (feature) {
-              infoCard.show(feature, layer.manifest.interaction.detailFields, layer.manifest.id);
-
-              // Show orbit path for satellites
-              if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {
-                (layer as unknown as SatelliteLayer).showOrbit(featureId);
-              }
-              return;
+    // Generic renderer pick protocol (PointCloud, Billboard, Polyline, etc.)
+    for (const layer of manager.getAll()) {
+      const renderer = (layer as unknown as { renderer?: IRenderer }).renderer;
+      if (renderer?.ownsPickedObject) {
+        const match = renderer.ownsPickedObject(picked as unknown as Record<string, unknown>);
+        if (match) {
+          const feature = layer.getFeatureById(match.featureId);
+          if (feature) {
+            infoCard.show(feature, layer.manifest.interaction.detailFields, layer.manifest.id);
+            if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {
+              (layer as unknown as SatelliteLayer).showOrbit(match.featureId);
             }
+            return;
           }
         }
       }

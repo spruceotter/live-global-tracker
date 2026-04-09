@@ -1,7 +1,8 @@
 import * as Cesium from 'cesium';
 import type { NormalizedFeature, StyleRule } from '../../core/types';
+import type { IRenderer } from '../RendererRegistry';
 
-export class PointCloudRenderer {
+export class PointCloudRenderer implements IRenderer {
   private collection: Cesium.PointPrimitiveCollection;
   private viewer: Cesium.Viewer;
   private featureIds: string[] = [];
@@ -68,6 +69,17 @@ export class PointCloudRenderer {
 
   getFeatureIdAtIndex(index: number): string | undefined {
     return this.featureIds[index];
+  }
+
+  ownsPickedObject(picked: Record<string, unknown>): { featureId: string } | null {
+    if (picked.collection === this.collection) {
+      const point = picked.primitive;
+      const idx = (point as unknown as { _index: number })?._index ?? -1;
+      if (idx >= 0 && idx < this.featureIds.length) {
+        return { featureId: this.featureIds[idx] };
+      }
+    }
+    return null;
   }
 
   getCollection(): Cesium.PointPrimitiveCollection {

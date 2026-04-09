@@ -9,6 +9,7 @@ import './styles/loading.css';
 import './styles/hud.css';
 import './styles/cesium-overrides.css';
 
+import { registerBuiltinRenderers } from './rendering/registerBuiltins';
 import { initViewer } from './viewer/initViewer';
 import { playCameraIntro } from './viewer/cameraSequence';
 import { setupAutoRotate } from './viewer/autoRotate';
@@ -55,6 +56,7 @@ function showWebGLError(): void {
 }
 
 async function main() {
+  registerBuiltinRenderers();
   let viewer;
   try {
     viewer = await initViewer('cesiumContainer');

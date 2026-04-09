@@ -1,7 +1,7 @@
 import { LayerBase } from '../../core/LayerBase';
 import type { NormalizedFeature } from '../../core/types';
 import { aircraftManifest } from './manifest';
-import { PointCloudRenderer } from '../../rendering/renderers/PointCloudRenderer';
+import { BillboardRenderer } from '../../rendering/renderers/BillboardRenderer';
 import { config } from '../../config';
 
 // OpenSky state vector indices
@@ -18,10 +18,10 @@ const VERTICAL_RATE = 11;
 
 export class AircraftLayer extends LayerBase {
   readonly manifest = aircraftManifest;
-  private renderer!: PointCloudRenderer;
+  private renderer!: BillboardRenderer;
 
   protected setupRenderer(): void {
-    this.renderer = new PointCloudRenderer(this.viewer);
+    this.renderer = new BillboardRenderer(this.viewer);
   }
 
   protected async fetchData(): Promise<unknown> {
