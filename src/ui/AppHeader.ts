@@ -1,7 +1,9 @@
+import type { SettingsDrawer } from './SettingsDrawer';
+
 export class AppHeader {
   private container: HTMLElement;
 
-  constructor() {
+  constructor(settingsDrawer?: SettingsDrawer) {
     this.container = document.createElement('header');
     this.container.className = 'app-header';
 
@@ -9,21 +11,28 @@ export class AppHeader {
     title.className = 'app-title';
     title.textContent = 'Live Global Tracker';
 
-    const spacer = document.createElement('div');
-    spacer.style.flex = '1';
+    const rightGroup = document.createElement('div');
+    rightGroup.style.display = 'flex';
+    rightGroup.style.gap = '8px';
+    rightGroup.style.alignItems = 'center';
+
+    const searchHint = document.createElement('div');
+    searchHint.className = 'header-search-hint';
+    searchHint.textContent = '\u2318K to search';
 
     const gear = document.createElement('button');
     gear.className = 'header-btn';
     gear.title = 'Settings';
     gear.textContent = '\u2699';
     gear.addEventListener('click', () => {
-      // Settings drawer - future feature
-      console.log('Settings clicked');
+      settingsDrawer?.toggle();
     });
 
+    rightGroup.appendChild(searchHint);
+    rightGroup.appendChild(gear);
+
     this.container.appendChild(title);
-    this.container.appendChild(spacer);
-    this.container.appendChild(gear);
+    this.container.appendChild(rightGroup);
     document.body.appendChild(this.container);
   }
 

@@ -10,19 +10,45 @@ import {
   classifyGroup,
   type SatRecord,
 } from './propagator';
+import { OrbitPathRenderer } from './orbit';
 import { config } from '../../config';
+
+const SAT_COLORS: Record<string, string> = {
+  iss: '#fbbf24',
+  starlink: '#c4b5fd',
+  gps: '#34d399',
+  weather: '#38bdf8',
+  other: '#a78bfa',
+};
 
 export class SatelliteLayer extends LayerBase {
   readonly manifest = satelliteManifest;
 
   private renderer!: PointCloudRenderer;
+  private orbitRenderer!: OrbitPathRenderer;
   private satRecords: SatRecord[] = [];
-  // Aligned with this.features -- only includes satrecs that propagated successfully
   private activeSatRecords: SatRecord[] = [];
   private propagationTimer: ReturnType<typeof setInterval> | null = null;
 
   protected setupRenderer(): void {
     this.renderer = new PointCloudRenderer(this.viewer);
+    this.orbitRenderer = new OrbitPathRenderer(this.viewer);
+  }
+
+  showOrbit(featureId: string): void {
+    const idx = this.features.findIndex((f) => f.id === featureId);
+    if (idx < 0 || idx >= this.activeSatRecords.length) {
+      this.orbitRenderer.clear();
+      return;
+    }
+    const rec = this.activeSatRecords[idx];
+    const cat = this.features[idx].category;
+    const color = SAT_COLORS[cat] ?? '#a78bfa';
+    this.orbitRenderer.show(rec, color);
+  }
+
+  clearOrbit(): void {
+    this.orbitRenderer.clear();
   }
 
   protected async fetchData(): Promise<string> {
@@ -94,6 +120,7 @@ export class SatelliteLayer extends LayerBase {
 
   protected clearRenderer(): void {
     this.stopPropagation();
+    this.orbitRenderer.destroy();
     this.renderer.destroy();
   }
 

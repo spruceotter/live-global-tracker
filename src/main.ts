@@ -3,12 +3,15 @@ import './styles/reset.css';
 import './styles/layout.css';
 import './styles/glass.css';
 import './styles/panels.css';
+import './styles/search.css';
+import './styles/settings.css';
 import './styles/cesium-overrides.css';
 
 import { initViewer } from './viewer/initViewer';
 import { playCameraIntro } from './viewer/cameraSequence';
 import { setupAutoRotate } from './viewer/autoRotate';
 import { setupClickHandler } from './viewer/clickHandler';
+import { setupZoomController } from './viewer/zoomController';
 import { LayerManager } from './core/LayerManager';
 import { SatelliteLayer } from './layers/satellites/SatelliteLayer';
 import { AircraftLayer } from './layers/aircraft/AircraftLayer';
@@ -19,6 +22,8 @@ import { AppHeader } from './ui/AppHeader';
 import { StatsBar } from './ui/StatsBar';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
+import { SearchOverlay } from './ui/SearchOverlay';
+import { SettingsDrawer } from './ui/SettingsDrawer';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -58,38 +63,36 @@ async function main() {
   const manager = new LayerManager();
   manager.setViewer(viewer);
 
-  // Register all layers in display order
+  // Register all layers
   manager.register(new SatelliteLayer());
   manager.register(new AircraftLayer());
   manager.register(new EarthquakeLayer());
   manager.register(new FireLayer());
   manager.register(new WeatherLayer());
 
-  // Start camera intro and data loading in parallel
+  // Camera intro + data loading in parallel
   await Promise.all([
     playCameraIntro(viewer),
     manager.initializeAll(),
   ]);
 
-  // Start auto-rotation after intro
+  // Post-init setup
   setupAutoRotate(viewer);
+  setupZoomController(viewer, manager);
 
-  // Mount UI
-  new AppHeader();
+  // UI
+  const settingsDrawer = new SettingsDrawer();
+  new AppHeader(settingsDrawer);
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
+  new SearchOverlay(viewer, manager);
+  new LayerPanel(manager);
 
   const statsBar = new StatsBar();
   statsBar.setLayers(manager.getAll());
 
-  new LayerPanel(manager);
-
-  // Log success
-  const totalEntities = manager
-    .getAll()
-    .reduce((sum, l) => sum + l.getFeatureCount(), 0);
   console.log(
-    `Live Global Tracker initialized with ${totalEntities.toLocaleString()} entities`
+    `Live Global Tracker initialized with ${manager.getAll().reduce((s, l) => s + l.getFeatureCount(), 0).toLocaleString()} entities`
   );
 }
 

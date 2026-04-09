@@ -52,6 +52,17 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.header-search-hint {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
 .layer-panel {
   position: fixed;
   left: 16px;

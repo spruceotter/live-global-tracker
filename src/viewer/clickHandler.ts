@@ -2,6 +2,7 @@ import * as Cesium from 'cesium';
 import type { LayerManager } from '../core/LayerManager';
 import type { InfoCard } from '../ui/InfoCard';
 import type { PointCloudRenderer } from '../rendering/renderers/PointCloudRenderer';
+import type { SatelliteLayer } from '../layers/satellites/SatelliteLayer';
 
 export function setupClickHandler(
   viewer: Cesium.Viewer,
@@ -12,6 +13,13 @@ export function setupClickHandler(
 
   handler.setInputAction((movement: { position: Cesium.Cartesian2 }) => {
     const picked = viewer.scene.pick(movement.position);
+
+    // Clear satellite orbit on any click
+    const satLayer = manager.getById('satellites') as SatelliteLayer | undefined;
+    if (satLayer && 'clearOrbit' in satLayer) {
+      (satLayer as SatelliteLayer).clearOrbit();
+    }
+
     if (!picked) {
       infoCard.close();
       return;
@@ -38,10 +46,8 @@ export function setupClickHandler(
     }
 
     // Check if it's a PointPrimitive (satellites, aircraft, fires)
-    // scene.pick() returns { primitive: PointPrimitive, collection: PointPrimitiveCollection }
     if (picked.collection instanceof Cesium.PointPrimitiveCollection) {
       const collection = picked.collection;
-      // The picked primitive is the individual PointPrimitive; get its index
       const point = picked.primitive;
       const pointIndex = (point as unknown as { _index: number })._index ?? -1;
       if (pointIndex < 0) {
@@ -49,7 +55,6 @@ export function setupClickHandler(
         return;
       }
 
-      // Find which layer owns this collection
       for (const layer of manager.getAll()) {
         const layerAny = layer as unknown as { renderer?: PointCloudRenderer };
         if (
@@ -62,6 +67,11 @@ export function setupClickHandler(
             const feature = layer.getFeatureById(featureId);
             if (feature) {
               infoCard.show(feature, layer.manifest.interaction.detailFields);
+
+              // Show orbit path for satellites
+              if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {
+                (layer as unknown as SatelliteLayer).showOrbit(featureId);
+              }
               return;
             }
           }
