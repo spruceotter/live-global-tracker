@@ -7,6 +7,7 @@ import './styles/search.css';
 import './styles/settings.css';
 import './styles/loading.css';
 import './styles/hud.css';
+import './styles/connection-manager.css';
 import './styles/responsive.css';
 import './styles/cesium-overrides.css';
 
@@ -33,6 +34,10 @@ import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
 import { SearchOverlay } from './ui/SearchOverlay';
 import { SettingsDrawer } from './ui/SettingsDrawer';
+import { ConnectionManager } from './ui/ConnectionManager';
+import { CatalogRegistry } from './core/CatalogRegistry';
+import { DataSourceStore } from './core/DataSourceStore';
+import { BUILT_IN_CATALOG } from './core/catalogEntries';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { ProximityTooltip } from './ui/ProximityTooltip';
 import { SystemStrip } from './ui/SystemStrip';
@@ -101,9 +106,20 @@ async function main() {
   setup3DBuildings(viewer);
   setupUrlState(viewer, manager);
 
+  // Data Source Manager
+  const catalog = new CatalogRegistry();
+  const dsStore = new DataSourceStore();
+  for (const entry of BUILT_IN_CATALOG) {
+    catalog.registerEntry(entry);
+  }
+  for (const custom of dsStore.getCustomSources()) {
+    catalog.registerEntry(custom);
+  }
+
   // HUD UI
+  const connectionManager = new ConnectionManager(manager, catalog, dsStore);
   const settingsDrawer = new SettingsDrawer();
-  new AppHeader(settingsDrawer);
+  new AppHeader(settingsDrawer, connectionManager);
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
   new SearchOverlay(viewer, manager);

@@ -1,9 +1,10 @@
 import type { SettingsDrawer } from './SettingsDrawer';
+import type { ConnectionManager } from './ConnectionManager';
 
 export class AppHeader {
   private container: HTMLElement;
 
-  constructor(settingsDrawer?: SettingsDrawer) {
+  constructor(settingsDrawer?: SettingsDrawer, connectionManager?: ConnectionManager) {
     this.container = document.createElement('header');
     this.container.className = 'app-header';
 
@@ -20,15 +21,20 @@ export class AppHeader {
     searchHint.className = 'header-search-hint';
     searchHint.textContent = '\u2318K to search';
 
+    const sourcesBtn = document.createElement('button');
+    sourcesBtn.className = 'header-btn';
+    sourcesBtn.title = 'Data Sources';
+    sourcesBtn.textContent = '\u{1F4E1}';
+    sourcesBtn.addEventListener('click', () => connectionManager?.toggle());
+
     const gear = document.createElement('button');
     gear.className = 'header-btn';
     gear.title = 'Settings';
     gear.textContent = '\u2699';
-    gear.addEventListener('click', () => {
-      settingsDrawer?.toggle();
-    });
+    gear.addEventListener('click', () => settingsDrawer?.toggle());
 
     rightGroup.appendChild(searchHint);
+    rightGroup.appendChild(sourcesBtn);
     rightGroup.appendChild(gear);
 
     this.container.appendChild(title);

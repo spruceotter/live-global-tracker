@@ -50,6 +50,27 @@ export class LayerManager {
     }
   }
 
+  hasLayer(id: string): boolean {
+    return this.layers.some((l) => l.manifest.id === id);
+  }
+
+  unregister(id: string): void {
+    const idx = this.layers.findIndex((l) => l.manifest.id === id);
+    if (idx >= 0) {
+      this.layers[idx].destroy();
+      this.layers.splice(idx, 1);
+    }
+  }
+
+  async registerDynamic(manifest: LayerManifest): Promise<IDataLayer> {
+    const layer = new ManifestLayer(manifest);
+    this.layers.push(layer);
+    if (this.viewer) {
+      await layer.initialize(this.viewer);
+    }
+    return layer;
+  }
+
   destroyAll(): void {
     this.layers.forEach((l) => l.destroy());
     this.layers = [];

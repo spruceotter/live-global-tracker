@@ -103,7 +103,9 @@ export interface LayerManifest {
     proxied: boolean;
     auth:
       | { kind: 'none' }
-      | { kind: 'api-key-query'; paramName: string; envVar: string };
+      | { kind: 'api-key-query'; paramName: string; envVar: string }
+      | { kind: 'api-key-header'; headerName: string; envVar: string }
+      | { kind: 'bearer'; envVar: string };
   };
 
   rendering: {
