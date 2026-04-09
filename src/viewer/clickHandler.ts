@@ -37,7 +37,7 @@ export function setupClickHandler(
           if (layer) {
             const feature = layer.getFeatureById(featureId);
             if (feature) {
-              infoCard.show(feature, layer.manifest.interaction.detailFields);
+              infoCard.show(feature, layer.manifest.interaction.detailFields, layer.manifest.id);
               return;
             }
           }
@@ -66,7 +66,7 @@ export function setupClickHandler(
           if (featureId) {
             const feature = layer.getFeatureById(featureId);
             if (feature) {
-              infoCard.show(feature, layer.manifest.interaction.detailFields);
+              infoCard.show(feature, layer.manifest.interaction.detailFields, layer.manifest.id);
 
               // Show orbit path for satellites
               if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {

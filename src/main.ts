@@ -6,6 +6,7 @@ import './styles/panels.css';
 import './styles/search.css';
 import './styles/settings.css';
 import './styles/loading.css';
+import './styles/hud.css';
 import './styles/cesium-overrides.css';
 
 import { initViewer } from './viewer/initViewer';
@@ -20,13 +21,13 @@ import { EarthquakeLayer } from './layers/earthquakes/EarthquakeLayer';
 import { FireLayer } from './layers/fires/FireLayer';
 import { WeatherLayer } from './layers/weather/WeatherLayer';
 import { AppHeader } from './ui/AppHeader';
-import { StatsBar } from './ui/StatsBar';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
 import { SearchOverlay } from './ui/SearchOverlay';
 import { SettingsDrawer } from './ui/SettingsDrawer';
 import { LoadingOverlay } from './ui/LoadingOverlay';
 import { ProximityTooltip } from './ui/ProximityTooltip';
+import { SystemStrip } from './ui/SystemStrip';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -66,14 +67,13 @@ async function main() {
   const manager = new LayerManager();
   manager.setViewer(viewer);
 
-  // Register all layers
   manager.register(new SatelliteLayer());
   manager.register(new AircraftLayer());
   manager.register(new EarthquakeLayer());
   manager.register(new FireLayer());
   manager.register(new WeatherLayer());
 
-  // Show loading overlay before data fetch
+  // Loading overlay
   const loadingOverlay = new LoadingOverlay();
   loadingOverlay.track(manager);
 
@@ -83,11 +83,10 @@ async function main() {
     manager.initializeAll(),
   ]);
 
-  // Post-init setup
   setupAutoRotate(viewer);
   setupZoomController(viewer, manager);
 
-  // UI
+  // HUD UI
   const settingsDrawer = new SettingsDrawer();
   new AppHeader(settingsDrawer);
   const infoCard = new InfoCard();
@@ -95,9 +94,12 @@ async function main() {
   new SearchOverlay(viewer, manager);
   new ProximityTooltip(viewer, manager);
   new LayerPanel(manager);
+  new SystemStrip(manager);
 
-  const statsBar = new StatsBar();
-  statsBar.setLayers(manager.getAll());
+  // Viewport ring
+  const ring = document.createElement('div');
+  ring.className = 'viewport-ring active';
+  document.body.appendChild(ring);
 
   console.log(
     `Live Global Tracker initialized with ${manager.getAll().reduce((s, l) => s + l.getFeatureCount(), 0).toLocaleString()} entities`

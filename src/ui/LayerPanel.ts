@@ -1,180 +1,158 @@
-import type { IDataLayer, LayerStatus } from '../core/types';
+import type { IDataLayer } from '../core/types';
 import type { LayerManager } from '../core/LayerManager';
 
-const ICONS: Record<string, string> = {
-  sat: '\u{1F6F0}',
-  aircraft: '\u2708',
-  quake: '\u{1F534}',
-  fire: '\u{1F525}',
-  weather: '\u2601',
+const LAYER_SVGS: Record<string, string> = {
+  sat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="10" cy="10" rx="8" ry="3" transform="rotate(-30 10 10)"/><circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/></svg>',
+  aircraft: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2l2 6h5l-4 3 1.5 5L10 13l-4.5 3L7 11 3 8h5z"/></svg>',
+  quake: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="6" opacity="0.5"/><circle cx="10" cy="10" r="8.5" opacity="0.25"/></svg>',
+  fire: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2c0 3-3 5-3 8a3 3 0 006 0c0-1-.5-2-1-3 0 2-2 3-2 1s1-4 0-6z"/></svg>',
+  weather: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 14a4 4 0 01-.5-7.97A5.5 5.5 0 0115 7a3.5 3.5 0 01.5 6.97H6z"/></svg>',
 };
 
-const LAYER_COLORS: Record<string, string> = {
-  satellites: '#a78bfa',
-  aircraft: '#60a5fa',
-  earthquakes: '#ef4444',
-  fires: '#f97316',
-  weather: '#94a3b8',
+const LAYER_COLORS: Record<string, [string, string]> = {
+  satellites: ['#a78bfa', 'rgba(167,139,250,0.25)'],
+  aircraft: ['#60a5fa', 'rgba(96,165,250,0.25)'],
+  earthquakes: ['#ef4444', 'rgba(239,68,68,0.25)'],
+  fires: ['#f97316', 'rgba(249,115,22,0.25)'],
+  weather: ['#94a3b8', 'rgba(148,163,184,0.25)'],
 };
 
 export class LayerPanel {
   private container: HTMLElement;
-  private statusElements = new Map<string, { badge: HTMLElement; countEl: HTMLElement; errorEl: HTMLElement; sliderRow: HTMLElement }>();
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private layerEls = new Map<string, { countEl: HTMLElement; statusEl: HTMLElement; tile: HTMLElement; sliderTray: HTMLElement }>();
 
   constructor(manager: LayerManager) {
     this.container = document.createElement('div');
-    this.container.className = 'layer-panel glass';
+    this.container.className = 'arc-console';
     document.body.appendChild(this.container);
 
     for (const layer of manager.getAll()) {
-      this.container.appendChild(this.createLayerItem(layer, manager));
+      this.container.appendChild(this.createLayerTile(layer, manager));
     }
 
-    // Poll status every 500ms to update badges
-    this.pollTimer = setInterval(() => this.updateStatuses(manager), 500);
+    this.pollTimer = setInterval(() => this.updateAll(manager), 500);
   }
 
-  private createLayerItem(layer: IDataLayer, manager: LayerManager): HTMLElement {
-    const item = document.createElement('div');
-    item.className = 'layer-item';
-
-    const color = LAYER_COLORS[layer.manifest.id] ?? '#60a5fa';
+  private createLayerTile(layer: IDataLayer, manager: LayerManager): HTMLElement {
+    const [color, colorAlpha] = LAYER_COLORS[layer.manifest.id] ?? ['#60a5fa', 'rgba(96,165,250,0.25)'];
     const isActive = layer.manifest.defaultEnabled;
     const maxEntities = layer.getMaxEntities();
     const showSlider = maxEntities > 0 && layer.manifest.rendering.strategy !== 'imagery';
 
-    // Toggle button row
-    const btn = document.createElement('button');
-    btn.className = `layer-toggle${isActive ? ' active' : ''}`;
-    btn.title = layer.manifest.name;
-    this.applyToggleColor(btn, color, isActive);
+    const tile = document.createElement('div');
+    tile.className = `arc-layer${isActive ? ' active' : ''}${layer.manifest.refresh.kind === 'poll' ? ' streaming' : ''}`;
+    tile.style.setProperty('--layer-color', color);
+    tile.style.setProperty('--layer-color-alpha', colorAlpha);
 
-    const icon = document.createElement('span');
-    icon.className = 'layer-icon';
-    icon.textContent = ICONS[layer.manifest.icon] ?? '?';
+    // Main row: gutter + toggle
+    const row = document.createElement('div');
+    row.className = 'arc-row';
 
-    const label = document.createElement('span');
-    label.className = 'layer-label';
-    label.textContent = layer.manifest.name;
+    const gutter = document.createElement('div');
+    gutter.className = 'arc-gutter';
 
-    // Status badge (spinner / count / error)
-    const badge = document.createElement('span');
-    badge.className = 'layer-badge';
+    const toggle = document.createElement('button');
+    toggle.className = 'arc-toggle';
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'arc-icon';
+    const svgKey = layer.manifest.icon;
+    if (LAYER_SVGS[svgKey]) {
+      iconEl.innerHTML = LAYER_SVGS[svgKey];
+    } else {
+      iconEl.textContent = '?';
+    }
+
+    const info = document.createElement('span');
+    info.className = 'arc-info';
+
+    const name = document.createElement('span');
+    name.className = 'arc-name';
+    name.textContent = layer.manifest.name;
 
     const countEl = document.createElement('span');
-    countEl.className = 'layer-count';
+    countEl.className = 'arc-count';
+    countEl.textContent = isActive ? '...' : 'off';
 
-    btn.appendChild(icon);
-    btn.appendChild(label);
-    btn.appendChild(badge);
-    btn.appendChild(countEl);
-    item.appendChild(btn);
+    info.appendChild(name);
+    info.appendChild(countEl);
 
-    // Error message row (hidden by default)
-    const errorEl = document.createElement('div');
-    errorEl.className = 'layer-error';
-    errorEl.style.display = 'none';
-    item.appendChild(errorEl);
+    const statusEl = document.createElement('span');
+    statusEl.className = 'arc-status';
 
-    // Density slider
-    let sliderRow = document.createElement('div');
-    sliderRow.className = 'layer-slider-row';
-    sliderRow.style.display = 'none';
+    toggle.appendChild(iconEl);
+    toggle.appendChild(info);
+    toggle.appendChild(statusEl);
+
+    row.appendChild(gutter);
+    row.appendChild(toggle);
+    tile.appendChild(row);
+
+    // Density slider tray
+    const sliderTray = document.createElement('div');
+    sliderTray.className = `arc-slider-tray${showSlider ? ' has-slider' : ''}`;
 
     if (showSlider) {
-      const sliderLabel = document.createElement('span');
-      sliderLabel.className = 'layer-slider-label';
+      const sliderLabel = document.createElement('label');
       sliderLabel.textContent = 'Density';
 
       const slider = document.createElement('input');
       slider.type = 'range';
-      slider.className = 'layer-slider';
       slider.min = String(Math.min(100, maxEntities));
       slider.max = String(maxEntities);
       slider.value = String(maxEntities);
       slider.step = String(Math.max(1, Math.round(maxEntities / 100)));
 
-      const valLabel = document.createElement('span');
-      valLabel.className = 'layer-slider-value';
-      valLabel.textContent = this.formatCount(maxEntities);
-
       slider.addEventListener('input', () => {
-        const limit = parseInt(slider.value, 10);
-        layer.setDisplayLimit(limit);
-        valLabel.textContent = this.formatCount(limit);
+        layer.setDisplayLimit(parseInt(slider.value, 10));
       });
 
-      sliderRow.appendChild(sliderLabel);
-      sliderRow.appendChild(slider);
-      sliderRow.appendChild(valLabel);
-      item.appendChild(sliderRow);
+      sliderTray.appendChild(sliderLabel);
+      sliderTray.appendChild(slider);
     }
+    tile.appendChild(sliderTray);
 
-    // Store refs for status polling
-    this.statusElements.set(layer.manifest.id, { badge, countEl, errorEl, sliderRow });
+    this.layerEls.set(layer.manifest.id, { countEl, statusEl, tile, sliderTray });
 
     // Toggle click
-    btn.addEventListener('click', async () => {
+    toggle.addEventListener('click', async () => {
       await manager.toggleLayer(layer.manifest.id);
       const active = layer.isVisible();
-      btn.classList.toggle('active', active);
-      this.applyToggleColor(btn, color, active);
-      sliderRow.style.display = active && showSlider ? 'flex' : 'none';
+      tile.classList.toggle('active', active);
+      tile.classList.toggle('streaming', active && layer.manifest.refresh.kind === 'poll');
     });
 
-    return item;
+    return tile;
   }
 
-  private updateStatuses(manager: LayerManager): void {
+  private updateAll(manager: LayerManager): void {
     for (const layer of manager.getAll()) {
-      const els = this.statusElements.get(layer.manifest.id);
+      const els = this.layerEls.get(layer.manifest.id);
       if (!els) continue;
 
       const status = layer.getStatus();
       const count = layer.getFeatureCount();
+      const active = layer.isVisible();
 
-      // Badge: spinner for loading, dot for loaded, X for error
-      els.badge.className = `layer-badge layer-badge--${status}`;
-      els.badge.textContent = status === 'error' ? '!' : '';
+      // Status dot
+      els.statusEl.className = `arc-status ${status}`;
 
-      // Count
-      if (status === 'loaded' && layer.isVisible()) {
+      // Count text
+      if (active && status === 'loaded') {
         els.countEl.textContent = this.formatCount(count);
-        els.countEl.style.display = '';
-      } else {
-        els.countEl.style.display = 'none';
+      } else if (status === 'loading') {
+        els.countEl.textContent = '...';
+      } else if (status === 'error') {
+        els.countEl.textContent = 'err';
+      } else if (!active) {
+        els.countEl.textContent = 'off';
       }
-
-      // Error
-      if (status === 'error') {
-        const err = layer.getError() ?? 'Failed to load';
-        els.errorEl.textContent = err;
-        els.errorEl.style.display = '';
-      } else {
-        els.errorEl.style.display = 'none';
-      }
-
-      // Show slider when loaded and active
-      if (status === 'loaded' && layer.isVisible() && layer.getMaxEntities() > 0 && layer.manifest.rendering.strategy !== 'imagery') {
-        els.sliderRow.style.display = 'flex';
-      }
-    }
-  }
-
-  private applyToggleColor(btn: HTMLElement, color: string, active: boolean): void {
-    if (active) {
-      btn.style.borderColor = `${color}66`;
-      btn.style.color = color;
-      btn.style.background = `${color}1a`;
-    } else {
-      btn.style.borderColor = 'transparent';
-      btn.style.color = '';
-      btn.style.background = 'transparent';
     }
   }
 
   private formatCount(n: number): string {
+    if (n >= 10000) return `${(n / 1000).toFixed(1)}k`;
     if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
     return String(n);
   }

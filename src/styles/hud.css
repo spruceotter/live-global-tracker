@@ -1,0 +1,481 @@
+/* ============================================================
+   HUD DESIGN SYSTEM — Mission Control Aesthetic
+   ============================================================ */
+
+/* Arc Console — collapsible layer control */
+.arc-console {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: var(--z-layer-panel);
+  width: 52px;
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.arc-console:hover {
+  width: 240px;
+}
+
+.arc-layer {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  transition: border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.arc-layer.active {
+  border-color: var(--layer-color-alpha, rgba(255, 255, 255, 0.12));
+}
+
+.arc-row {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Left gutter — glowing accent bar */
+.arc-gutter {
+  width: 3px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 300ms ease, box-shadow 300ms ease;
+}
+
+.arc-layer.active .arc-gutter {
+  background: var(--layer-color, #60a5fa);
+  box-shadow: 0 0 8px var(--layer-color, #60a5fa);
+}
+
+.arc-layer.streaming .arc-gutter {
+  animation: gutter-pulse 2s ease-in-out infinite;
+}
+
+@keyframes gutter-pulse {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 6px var(--layer-color); }
+  50%      { opacity: 1;   box-shadow: 0 0 14px var(--layer-color), 0 0 28px rgba(96, 165, 250, 0.15); }
+}
+
+/* Toggle button */
+.arc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex: 1;
+  min-height: 44px;
+  transition: background 200ms ease;
+  overflow: hidden;
+}
+
+.arc-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.arc-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: color 200ms ease, filter 200ms ease;
+  font-size: 16px;
+}
+
+.arc-layer.active .arc-icon {
+  color: var(--layer-color, #60a5fa);
+  filter: drop-shadow(0 0 4px var(--layer-color));
+}
+
+/* Expandable info (hidden when collapsed) */
+.arc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  width: 0;
+  opacity: 0;
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 200ms ease 80ms;
+  white-space: nowrap;
+}
+
+.arc-console:hover .arc-info {
+  width: 130px;
+  opacity: 1;
+}
+
+.arc-name {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.arc-layer.active .arc-name {
+  color: var(--text-secondary);
+}
+
+.arc-count {
+  font-family: var(--font-data);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--layer-color, #60a5fa);
+  opacity: 0.85;
+  min-height: 1.2em;
+}
+
+.arc-layer:not(.active) .arc-count {
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+/* Status indicator */
+.arc-status {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.arc-console:hover .arc-status {
+  opacity: 1;
+}
+
+.arc-status.loading {
+  border: 2px solid transparent;
+  border-top-color: var(--layer-color, #60a5fa);
+  animation: spin 0.8s linear infinite;
+  opacity: 1;
+}
+
+.arc-status.loaded {
+  background: var(--accent-success);
+  opacity: 0.6;
+}
+
+.arc-status.error {
+  background: var(--accent-danger);
+  opacity: 1;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Slider tray */
+.arc-slider-tray {
+  display: none;
+  padding: 0 12px 8px 16px;
+  align-items: center;
+  gap: 8px;
+}
+
+.arc-console:hover .arc-layer.active .arc-slider-tray.has-slider {
+  display: flex;
+}
+
+.arc-slider-tray label {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.arc-slider-tray input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.arc-slider-tray input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--layer-color, #60a5fa);
+  box-shadow: 0 0 6px var(--layer-color);
+  cursor: pointer;
+}
+
+.arc-slider-tray input[type="range"]::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--layer-color, #60a5fa);
+  cursor: pointer;
+  border: none;
+}
+
+/* System strip — replaces stats bar */
+.system-strip {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: rgba(10, 14, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: var(--z-stats);
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.strip-divider {
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.strip-total {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.strip-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-success);
+  animation: strip-blink 3s ease-in-out infinite;
+}
+
+@keyframes strip-blink {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; box-shadow: 0 0 6px rgba(52, 211, 153, 0.6); }
+}
+
+/* Viewport edge ring */
+.viewport-ring {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 1.5s ease;
+}
+
+.viewport-ring.active {
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.4),
+    inset 0 0 1px rgba(96, 165, 250, 0.06);
+}
+
+/* Enhanced header */
+.app-header {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
+}
+
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(96, 165, 250, 0.12) 20%,
+    rgba(96, 165, 250, 0.06) 50%,
+    rgba(96, 165, 250, 0.12) 80%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Info card enhancements */
+.info-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-accent, #60a5fa);
+  box-shadow: 0 0 12px var(--card-accent, #60a5fa);
+}
+
+/* Mini orbit visualization */
+.viz-orbit {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 20px 12px;
+}
+
+.orbit-ring {
+  width: 80px;
+  height: 40px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  border-radius: 50%;
+  position: relative;
+  transform: rotateX(60deg);
+}
+
+.orbit-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--card-accent, #a78bfa);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--card-accent), 0 0 16px rgba(167, 139, 250, 0.3);
+  top: -3px;
+  left: 50%;
+  animation: orbit-move 4s linear infinite;
+  transform-origin: 50% 23px;
+}
+
+@keyframes orbit-move {
+  to { transform: rotate(360deg); }
+}
+
+/* Magnitude bar visualization */
+.viz-magnitude {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px 12px;
+}
+
+.mag-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mag-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #f97316, #ef4444);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mag-value {
+  font-family: var(--font-data);
+  font-size: 20px;
+  font-weight: 500;
+  color: #ef4444;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Altitude gauge visualization */
+.viz-altitude {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  height: 50px;
+  margin: 0 20px 12px;
+}
+
+.alt-track {
+  width: 4px;
+  background: linear-gradient(to top, #22d3ee, #38bdf8, #60a5fa);
+  border-radius: 2px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.alt-marker {
+  position: absolute;
+  left: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+  border: 2px solid rgba(10, 14, 23, 0.9);
+  transition: bottom 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alt-value {
+  font-family: var(--font-data);
+  font-size: 18px;
+  font-weight: 500;
+  color: #60a5fa;
+  align-self: center;
+  margin-left: auto;
+}
+
+/* Loading ring */
+.loading-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 1px solid rgba(96, 165, 250, 0.12);
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.loading-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: #60a5fa;
+  animation: spin 3s linear infinite;
+}
+
+.loading-ring::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(167, 139, 250, 0.4);
+  animation: spin 5s linear infinite reverse;
+}
+
+.loading-item {
+  opacity: 0;
+  animation: item-appear 400ms ease forwards;
+}
+
+.loading-item:nth-child(1) { animation-delay: 200ms; }
+.loading-item:nth-child(2) { animation-delay: 350ms; }
+.loading-item:nth-child(3) { animation-delay: 500ms; }
+.loading-item:nth-child(4) { animation-delay: 650ms; }
+.loading-item:nth-child(5) { animation-delay: 800ms; }
+
+@keyframes item-appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
