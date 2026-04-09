@@ -7,6 +7,11 @@ const LAYER_SVGS: Record<string, string> = {
   quake: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="6" opacity="0.5"/><circle cx="10" cy="10" r="8.5" opacity="0.25"/></svg>',
   fire: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2c0 3-3 5-3 8a3 3 0 006 0c0-1-.5-2-1-3 0 2-2 3-2 1s1-4 0-6z"/></svg>',
   weather: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 14a4 4 0 01-.5-7.97A5.5 5.5 0 0115 7a3.5 3.5 0 01.5 6.97H6z"/></svg>',
+  nightlights: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 105.3 14A6 6 0 0110 2z"/></svg>',
+  volcano: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 3l-1 3h2l-1-3zm-4 5l-4 9h16l-4-9h-2l1 3h-6l1-3z"/></svg>',
+  airquality: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3" fill="currentColor" stroke="none" opacity="0.5"/></svg>',
+  storm: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M12 2l-5 9h4l-3 7 8-10h-4z"/></svg>',
+  ship: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 14l2-8h10l2 8-7-2z"/><rect x="9" y="3" width="2" height="5"/></svg>',
 };
 
 const LAYER_COLORS: Record<string, [string, string]> = {
@@ -15,6 +20,8 @@ const LAYER_COLORS: Record<string, [string, string]> = {
   earthquakes: ['#ef4444', 'rgba(239,68,68,0.25)'],
   fires: ['#f97316', 'rgba(249,115,22,0.25)'],
   weather: ['#94a3b8', 'rgba(148,163,184,0.25)'],
+  nightlights: ['#fbbf24', 'rgba(251,191,36,0.25)'],
+  volcanoes: ['#dc2626', 'rgba(220,38,38,0.25)'],
 };
 
 export class LayerPanel {

@@ -21,6 +21,8 @@ import { AircraftLayer } from './layers/aircraft/AircraftLayer';
 import { EarthquakeLayer } from './layers/earthquakes/EarthquakeLayer';
 import { FireLayer } from './layers/fires/FireLayer';
 import { WeatherLayer } from './layers/weather/WeatherLayer';
+import { NightLightsLayer } from './layers/nightlights/NightLightsLayer';
+import { VolcanoLayer } from './layers/volcanoes/VolcanoLayer';
 import { AppHeader } from './ui/AppHeader';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
@@ -74,6 +76,8 @@ async function main() {
   manager.register(new EarthquakeLayer());
   manager.register(new FireLayer());
   manager.register(new WeatherLayer());
+  manager.register(new NightLightsLayer());
+  manager.register(new VolcanoLayer());
 
   // Loading overlay
   const loadingOverlay = new LoadingOverlay();
