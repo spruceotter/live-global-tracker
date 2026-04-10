@@ -4,7 +4,7 @@ import './styles/layout.css';
 import './styles/glass.css';
 import './styles/panels.css';
 import './styles/search.css';
-// settings.css removed — unified into connection-manager.css
+import './styles/onboarding.css';
 import './styles/loading.css';
 import './styles/hud.css';
 import './styles/connection-manager.css';
@@ -47,6 +47,7 @@ import { TimelineBar } from './ui/TimelineBar';
 import { FileDropZone } from './ui/FileDropZone';
 import { MeasureTools } from './ui/MeasureTools';
 import { startFollowCam, stopFollowCam, isFollowing } from './viewer/followCam';
+import { Onboarding } from './ui/Onboarding';
 import { ExportTools } from './ui/ExportTools';
 import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
 import { Bookmarks } from './ui/Bookmarks';
@@ -163,6 +164,9 @@ async function main() {
   const ring = document.createElement('div');
   ring.className = 'viewport-ring active';
   document.body.appendChild(ring);
+
+  // First-time onboarding (after all UI is mounted)
+  new Onboarding();
 
   console.log(
     `Live Global Tracker initialized with ${manager.getAll().reduce((s, l) => s + l.getFeatureCount(), 0).toLocaleString()} entities`

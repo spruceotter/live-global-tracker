@@ -1,0 +1,92 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-loading);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-spotlight {
+  position: fixed;
+  border: 2px solid rgba(96, 165, 250, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  pointer-events: none;
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-card {
+  width: 420px;
+  max-width: calc(100vw - 40px);
+  padding: 28px;
+  border-radius: 18px;
+  z-index: var(--z-loading);
+  text-align: center;
+}
+
+.onboarding-title {
+  font-family: var(--font-ui);
+  font-size: var(--text-xl);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.onboarding-desc {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.onboarding-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.onboarding-dot.active {
+  background: var(--accent-primary);
+}
+
+.onboarding-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.onboarding-btn:hover {
+  opacity: 0.85;
+}
+
+.onboarding-btn.skip {
+  background: transparent;
+  color: var(--text-tertiary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.onboarding-btn.next {
+  background: var(--accent-primary);
+  color: #000;
+}
