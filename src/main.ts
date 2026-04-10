@@ -4,7 +4,7 @@ import './styles/layout.css';
 import './styles/glass.css';
 import './styles/panels.css';
 import './styles/search.css';
-import './styles/settings.css';
+// settings.css removed — unified into connection-manager.css
 import './styles/loading.css';
 import './styles/hud.css';
 import './styles/connection-manager.css';
@@ -36,7 +36,6 @@ import { AppHeader } from './ui/AppHeader';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
 import { SearchOverlay } from './ui/SearchOverlay';
-import { SettingsDrawer } from './ui/SettingsDrawer';
 import { ConnectionManager } from './ui/ConnectionManager';
 import { CatalogRegistry } from './core/CatalogRegistry';
 import { DataSourceStore } from './core/DataSourceStore';
@@ -129,8 +128,7 @@ async function main() {
   // HUD UI
   const customWizard = new CustomSourceWizard(manager, dsStore, catalog);
   const connectionManager = new ConnectionManager(manager, catalog, dsStore);
-  const settingsDrawer = new SettingsDrawer();
-  const appHeader = new AppHeader(settingsDrawer, connectionManager);
+  const appHeader = new AppHeader(connectionManager);
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
   new ProximityTooltip(viewer, manager);

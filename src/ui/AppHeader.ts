@@ -1,4 +1,3 @@
-import type { SettingsDrawer } from './SettingsDrawer';
 import type { ConnectionManager } from './ConnectionManager';
 
 export class AppHeader {
@@ -6,7 +5,7 @@ export class AppHeader {
   private rightGroup: HTMLElement;
   private helpBtn: HTMLElement | null = null;
 
-  constructor(settingsDrawer?: SettingsDrawer, connectionManager?: ConnectionManager) {
+  constructor(connectionManager?: ConnectionManager) {
     this.container = document.createElement('header');
     this.container.className = 'app-header';
 
@@ -23,33 +22,25 @@ export class AppHeader {
     searchHint.className = 'header-search-hint';
     searchHint.textContent = '\u2318K to search';
 
-    const sourcesBtn = document.createElement('button');
-    sourcesBtn.className = 'header-btn';
-    sourcesBtn.title = 'Data Sources';
-    sourcesBtn.textContent = '\u{1F4E1}';
-    sourcesBtn.addEventListener('click', () => connectionManager?.toggle());
-
-    const gear = document.createElement('button');
-    gear.className = 'header-btn';
-    gear.title = 'Settings';
-    gear.textContent = '\u2699';
-    gear.addEventListener('click', () => settingsDrawer?.toggle());
-
-    // Help button — most discoverable way to find shortcuts
+    // Help button
     const helpBtn = document.createElement('button');
     helpBtn.className = 'header-btn';
     helpBtn.title = 'Keyboard shortcuts (?)';
     helpBtn.textContent = '?';
     helpBtn.style.fontSize = '14px';
     helpBtn.style.fontWeight = '600';
+    this.helpBtn = helpBtn;
+
+    // Settings / Data Sources (unified)
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'header-btn';
+    settingsBtn.title = 'Settings & Data Sources';
+    settingsBtn.textContent = '\u2699';
+    settingsBtn.addEventListener('click', () => connectionManager?.toggle());
 
     this.rightGroup.appendChild(searchHint);
-    this.rightGroup.appendChild(sourcesBtn);
     this.rightGroup.appendChild(helpBtn);
-    this.rightGroup.appendChild(gear);
-    // Dynamic buttons (☆, +) are added via addButton() after construction
-
-    this.helpBtn = helpBtn;
+    this.rightGroup.appendChild(settingsBtn);
 
     this.container.appendChild(title);
     this.container.appendChild(this.rightGroup);
@@ -66,7 +57,6 @@ export class AppHeader {
     btn.title = title;
     btn.textContent = label;
     btn.addEventListener('click', onClick);
-    // Insert before the last element (gear)
     this.rightGroup.insertBefore(btn, this.rightGroup.lastChild);
   }
 

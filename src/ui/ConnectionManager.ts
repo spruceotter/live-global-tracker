@@ -2,6 +2,7 @@ import type { CatalogRegistry } from '../core/CatalogRegistry';
 import type { DataSourceStore, CatalogEntry } from '../core/DataSourceStore';
 import type { LayerManager } from '../core/LayerManager';
 import { testConnection } from '../core/ConnectionTester';
+import { getStoredKey, setStoredKey } from '../config';
 
 const STATUS_COLORS: Record<string, string> = {
   connected: '#34d399',
@@ -63,7 +64,32 @@ export class ConnectionManager {
     this.sourceList = document.createElement('div');
     this.sourceList.className = 'cm-source-list';
 
+    // Platform settings button
+    const platformBtn = document.createElement('button');
+    platformBtn.className = 'cm-source-item';
+    platformBtn.style.marginBottom = '8px';
+    platformBtn.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+
+    const platformDot = document.createElement('span');
+    platformDot.className = 'cm-source-dot';
+    platformDot.style.background = getStoredKey('cesiumIonToken') ? '#34d399' : '#f59e0b';
+
+    const platformInfo = document.createElement('span');
+    platformInfo.className = 'cm-source-info';
+    const platformName = document.createElement('span');
+    platformName.className = 'cm-source-name';
+    platformName.textContent = 'Platform Settings';
+    const platformMeta = document.createElement('span');
+    platformMeta.className = 'cm-source-meta';
+    platformMeta.textContent = 'Cesium Ion token';
+    platformInfo.appendChild(platformName);
+    platformInfo.appendChild(platformMeta);
+    platformBtn.appendChild(platformDot);
+    platformBtn.appendChild(platformInfo);
+    platformBtn.addEventListener('click', () => this.renderPlatformSettings());
+
     this.sidebar.appendChild(searchInput);
+    this.sidebar.appendChild(platformBtn);
     this.sidebar.appendChild(this.sourceList);
 
     // Detail panel
@@ -306,6 +332,65 @@ export class ConnectionManager {
       enabled: false,
       origin: entry.origin,
     };
+  }
+
+  private renderPlatformSettings(): void {
+    this.selectedId = null;
+    this.renderSourceList('');
+    this.detail.replaceChildren();
+
+    const header = document.createElement('div');
+    header.className = 'cm-detail-header';
+    const title = document.createElement('h3');
+    title.textContent = 'Platform Settings';
+    header.appendChild(title);
+    this.detail.appendChild(header);
+
+    const desc = document.createElement('p');
+    desc.className = 'cm-detail-desc';
+    desc.textContent = 'Configure global platform settings. API keys are stored locally in your browser.';
+    this.detail.appendChild(desc);
+
+    // Cesium Ion Token
+    const section = document.createElement('div');
+    section.className = 'cm-section';
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'cm-section-title';
+    sectionTitle.textContent = 'Cesium Ion Token (required for globe imagery)';
+    section.appendChild(sectionTitle);
+
+    const keyRow = document.createElement('div');
+    keyRow.className = 'cm-key-row';
+    const keyInput = document.createElement('input');
+    keyInput.type = 'password';
+    keyInput.className = 'cm-key-input';
+    keyInput.placeholder = 'Paste your Cesium Ion token';
+    keyInput.value = getStoredKey('cesiumIonToken');
+    keyInput.addEventListener('change', () => {
+      setStoredKey('cesiumIonToken', keyInput.value.trim());
+    });
+
+    const keyLink = document.createElement('a');
+    keyLink.className = 'cm-key-link';
+    keyLink.textContent = 'Get token';
+    keyLink.href = 'https://ion.cesium.com/signup';
+    keyLink.target = '_blank';
+    keyLink.rel = 'noopener';
+
+    keyRow.appendChild(keyInput);
+    keyRow.appendChild(keyLink);
+    section.appendChild(keyRow);
+    this.detail.appendChild(section);
+
+    // Save & Reload
+    const actions = document.createElement('div');
+    actions.className = 'cm-actions';
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'cm-btn cm-btn-primary';
+    saveBtn.textContent = 'Save & Reload';
+    saveBtn.addEventListener('click', () => window.location.reload());
+    actions.appendChild(saveBtn);
+    this.detail.appendChild(actions);
   }
 
   destroy(): void {
