@@ -3,6 +3,7 @@ import type { ConnectionManager } from './ConnectionManager';
 
 export class AppHeader {
   private container: HTMLElement;
+  private rightGroup: HTMLElement;
 
   constructor(settingsDrawer?: SettingsDrawer, connectionManager?: ConnectionManager) {
     this.container = document.createElement('header');
@@ -12,10 +13,10 @@ export class AppHeader {
     title.className = 'app-title';
     title.textContent = 'Live Global Tracker';
 
-    const rightGroup = document.createElement('div');
-    rightGroup.style.display = 'flex';
-    rightGroup.style.gap = '8px';
-    rightGroup.style.alignItems = 'center';
+    this.rightGroup = document.createElement('div');
+    this.rightGroup.style.display = 'flex';
+    this.rightGroup.style.gap = '8px';
+    this.rightGroup.style.alignItems = 'center';
 
     const searchHint = document.createElement('div');
     searchHint.className = 'header-search-hint';
@@ -33,13 +34,23 @@ export class AppHeader {
     gear.textContent = '\u2699';
     gear.addEventListener('click', () => settingsDrawer?.toggle());
 
-    rightGroup.appendChild(searchHint);
-    rightGroup.appendChild(sourcesBtn);
-    rightGroup.appendChild(gear);
+    this.rightGroup.appendChild(searchHint);
+    this.rightGroup.appendChild(sourcesBtn);
+    this.rightGroup.appendChild(gear);
 
     this.container.appendChild(title);
-    this.container.appendChild(rightGroup);
+    this.container.appendChild(this.rightGroup);
     document.body.appendChild(this.container);
+  }
+
+  addButton(label: string, title: string, onClick: () => void): void {
+    const btn = document.createElement('button');
+    btn.className = 'header-btn';
+    btn.title = title;
+    btn.textContent = label;
+    btn.addEventListener('click', onClick);
+    // Insert before the last element (gear)
+    this.rightGroup.insertBefore(btn, this.rightGroup.lastChild);
   }
 
   destroy(): void {

@@ -49,6 +49,7 @@ import { FileDropZone } from './ui/FileDropZone';
 import { MeasureTools } from './ui/MeasureTools';
 import { ExportTools } from './ui/ExportTools';
 import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
+import { Bookmarks } from './ui/Bookmarks';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -127,7 +128,7 @@ async function main() {
   // HUD UI
   const connectionManager = new ConnectionManager(manager, catalog, dsStore);
   const settingsDrawer = new SettingsDrawer();
-  new AppHeader(settingsDrawer, connectionManager);
+  const appHeader = new AppHeader(settingsDrawer, connectionManager);
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
   new ProximityTooltip(viewer, manager);
@@ -138,6 +139,11 @@ async function main() {
   const measureTools = new MeasureTools(viewer);
   const exportTools = new ExportTools(viewer);
   const searchOverlay = new SearchOverlay(viewer, manager);
+
+  const bookmarks = new Bookmarks(viewer, () =>
+    manager.getAll().filter((l) => l.isVisible()).map((l) => l.manifest.id)
+  );
+  appHeader.addButton('\u2606', 'Bookmarks', () => bookmarks.toggle());
 
   new KeyboardShortcuts(
     manager,
