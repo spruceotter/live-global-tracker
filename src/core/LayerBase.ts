@@ -1,6 +1,9 @@
 import * as Cesium from 'cesium';
 import type { IDataLayer, LayerManifest, LayerStatus, NormalizedFeature } from './types';
 
+// Retry backoff schedule (ms)
+const RETRY_DELAYS = [2000, 10000, 60000, 300000]; // 2s, 10s, 1min, 5min
+
 export abstract class LayerBase implements IDataLayer {
   abstract readonly manifest: LayerManifest;
 
@@ -14,6 +17,11 @@ export abstract class LayerBase implements IDataLayer {
   private _status: LayerStatus = 'idle';
   private _error: string | null = null;
   private _filters: Array<{ attr: string; min?: number; max?: number; values?: string[] }> = [];
+  private _fetchInProgress = false;
+  private _consecutiveErrors = 0;
+  private _retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private _lastFetchDurationMs = 0;
+  private _refreshCount = 0;
 
   async initialize(viewer: Cesium.Viewer): Promise<void> {
     this.viewer = viewer;
@@ -23,19 +31,46 @@ export abstract class LayerBase implements IDataLayer {
   }
 
   async update(): Promise<void> {
+    // Concurrent fetch guard — skip if a fetch is already in progress
+    if (this._fetchInProgress) return;
+    this._fetchInProgress = true;
+
     this._status = 'loading';
     this._error = null;
+    const fetchStart = performance.now();
+
     try {
       const raw = await this.fetchData();
+      this._lastFetchDurationMs = Math.round(performance.now() - fetchStart);
       this.allFeatures = this.normalize(raw);
       this.applyFiltersAndLimit();
       this.lastUpdated = new Date();
       this._status = 'loaded';
+      this._consecutiveErrors = 0; // Reset on success
+      this._refreshCount++;
     } catch (err) {
+      this._lastFetchDurationMs = Math.round(performance.now() - fetchStart);
       this._status = 'error';
       this._error = (err as Error).message ?? 'Unknown error';
-      console.error(`[${this.manifest.id}] Update failed:`, err);
+      this._consecutiveErrors++;
+      console.error(`[${this.manifest.id}] Update failed (attempt ${this._consecutiveErrors}):`, err);
+
+      // Auto-retry with exponential backoff
+      this.scheduleRetry();
+    } finally {
+      this._fetchInProgress = false;
     }
+  }
+
+  private scheduleRetry(): void {
+    if (this._retryTimer) return; // Already scheduled
+    const delayIndex = Math.min(this._consecutiveErrors - 1, RETRY_DELAYS.length - 1);
+    const delay = RETRY_DELAYS[delayIndex];
+    console.log(`[${this.manifest.id}] Retrying in ${delay / 1000}s (attempt ${this._consecutiveErrors + 1})`);
+    this._retryTimer = setTimeout(() => {
+      this._retryTimer = null;
+      this.update();
+    }, delay);
   }
 
   getStatus(): LayerStatus {
@@ -47,7 +82,29 @@ export abstract class LayerBase implements IDataLayer {
   }
 
   async retry(): Promise<void> {
+    this._consecutiveErrors = 0; // Manual retry resets backoff
     await this.update();
+  }
+
+  getLastFetchDurationMs(): number {
+    return this._lastFetchDurationMs;
+  }
+
+  getRefreshCount(): number {
+    return this._refreshCount;
+  }
+
+  getDataAgeMs(): number {
+    if (!this.lastUpdated) return Infinity;
+    return Date.now() - this.lastUpdated.getTime();
+  }
+
+  isDataStale(): boolean {
+    if (!this.lastUpdated) return true;
+    if (this.manifest.refresh.kind === 'one-shot') return false;
+    // Stale if data is older than 3x the refresh interval
+    const interval = this.manifest.refresh.intervalMs;
+    return this.getDataAgeMs() > interval * 3;
   }
 
   setDisplayLimit(limit: number): void {
@@ -100,6 +157,10 @@ export abstract class LayerBase implements IDataLayer {
 
   destroy(): void {
     this.stopRefresh();
+    if (this._retryTimer) {
+      clearTimeout(this._retryTimer);
+      this._retryTimer = null;
+    }
     this.clearRenderer();
   }
 

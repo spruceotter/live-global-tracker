@@ -59,6 +59,15 @@
   width: 240px;
 }
 
+.arc-layer.stale {
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.arc-layer.stale .arc-gutter {
+  background: var(--accent-warning);
+  animation: gutter-pulse 1s ease-in-out infinite;
+}
+
 .arc-layer {
   display: flex;
   flex-direction: column;

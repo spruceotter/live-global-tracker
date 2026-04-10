@@ -172,23 +172,37 @@ export class LayerPanel {
       // Status dot
       els.statusEl.className = `arc-status ${status}`;
 
-      // Count text
+      // Count text with freshness
       if (active && status === 'loaded') {
-        els.countEl.textContent = this.formatCount(count);
+        const ageMs = layer.getDataAgeMs();
+        const ageText = this.formatAge(ageMs);
+        const stale = layer.isDataStale();
+        els.countEl.textContent = `${this.formatCount(count)} \u00B7 ${ageText}`;
+        els.tile.classList.toggle('stale', stale);
       } else if (status === 'loading') {
         els.countEl.textContent = '...';
+        els.tile.classList.remove('stale');
       } else if (status === 'error') {
-        els.countEl.textContent = 'err';
+        els.countEl.textContent = `err \u00B7 retry...`;
+        els.tile.classList.remove('stale');
       } else if (!active) {
         els.countEl.textContent = 'off';
+        els.tile.classList.remove('stale');
       }
     }
   }
 
   private formatCount(n: number): string {
-    if (n >= 10000) return `${(n / 1000).toFixed(1)}k`;
     if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
     return String(n);
+  }
+
+  private formatAge(ms: number): string {
+    if (!isFinite(ms) || ms < 0) return 'never';
+    if (ms < 5000) return 'now';
+    if (ms < 60000) return `${Math.round(ms / 1000)}s`;
+    if (ms < 3600000) return `${Math.round(ms / 60000)}m`;
+    return `${Math.round(ms / 3600000)}h`;
   }
 
   destroy(): void {

@@ -7,6 +7,9 @@ export function buildProxyRouter(): Router {
   const cache = new CacheManager();
   cache.startEvictionLoop();
 
+  // Request coalescing: deduplicate in-flight requests to same URL
+  const inflightRequests = new Map<string, Promise<unknown>>();
+
   for (const source of sources) {
     router.get(`/${source.route}`, async (req: Request, res: Response) => {
       const cacheKey = `${source.route}:${JSON.stringify(req.params)}`;
@@ -23,7 +26,16 @@ export function buildProxyRouter(): Router {
           : source.upstream;
 
       try {
-        const response = await fetch(upstreamUrl);
+        // Request coalescing: if same URL is already being fetched, reuse the promise
+        let fetchPromise = inflightRequests.get(upstreamUrl);
+        if (!fetchPromise) {
+          fetchPromise = fetch(upstreamUrl).then(async (r) => {
+            inflightRequests.delete(upstreamUrl);
+            return r;
+          });
+          inflightRequests.set(upstreamUrl, fetchPromise);
+        }
+        const response = await fetchPromise as globalThis.Response;
         if (!response.ok) {
           // On 429, serve stale cache if available
           if (response.status === 429) {

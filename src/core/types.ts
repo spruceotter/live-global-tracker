@@ -161,6 +161,11 @@ export interface IDataLayer {
   getMaxEntities(): number;
   getTotalAvailable(): number;
 
+  getDataAgeMs(): number;
+  isDataStale(): boolean;
+  getLastFetchDurationMs(): number;
+  getRefreshCount(): number;
+
   getFeatureById(id: string): NormalizedFeature | null;
   search(query: string): Array<{ id: string; label: string; lat: number; lon: number; alt?: number }>;
 }
