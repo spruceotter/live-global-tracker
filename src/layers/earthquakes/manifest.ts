@@ -43,6 +43,11 @@ export const earthquakeManifest: LayerManifest = {
     ],
   },
 
+  filters: [
+    { attr: 'mag', label: 'Magnitude', type: 'range', min: 0, max: 9, step: 0.5 },
+    { attr: 'depth', label: 'Depth (km)', type: 'range', min: 0, max: 700, step: 10 },
+  ],
+
   requiredKeys: [],
   defaultEnabled: true,
   order: 3,

@@ -52,6 +52,10 @@ export const aircraftManifest: LayerManifest = {
   },
 
   requiredKeys: [],
+  filters: [
+    { attr: 'altitude', label: 'Altitude', type: 'range', min: 0, max: 15000, step: 500 },
+  ],
+
   defaultEnabled: false,
   order: 2,
 };

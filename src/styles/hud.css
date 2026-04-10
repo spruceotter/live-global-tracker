@@ -41,6 +41,91 @@
   opacity: 0;
 }
 
+/* Arc Console search + filter (visible on hover) */
+.arc-search {
+  display: none;
+  margin: 4px 6px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-primary);
+  outline: none;
+  width: calc(100% - 12px);
+  box-sizing: border-box;
+}
+
+.arc-console:hover .arc-search {
+  display: block;
+}
+
+.arc-search:focus {
+  border-color: var(--accent-primary);
+}
+
+.arc-search::placeholder {
+  color: var(--text-ghost);
+}
+
+.arc-filter-bar {
+  display: none;
+  gap: 2px;
+  padding: 0 6px 4px;
+}
+
+.arc-console:hover .arc-filter-bar {
+  display: flex;
+}
+
+.arc-filter-btn {
+  flex: 1;
+  padding: 3px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.arc-filter-btn.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+
+.arc-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arc-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.arc-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.arc-filter-value {
+  font-family: var(--font-data);
+  font-size: 9px;
+  color: var(--text-tertiary);
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 /* Arc Console — collapsible layer control */
 .arc-console {
   position: fixed;

@@ -129,9 +129,21 @@ export interface LayerManifest {
     detailFields: DetailField[];
   };
 
+  filters?: FilterDef[];
+
   requiredKeys: string[];
   defaultEnabled: boolean;
   order: number;
+}
+
+export interface FilterDef {
+  attr: string;
+  label: string;
+  type: 'range' | 'select';
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
 }
 
 // --- Layer Status ---

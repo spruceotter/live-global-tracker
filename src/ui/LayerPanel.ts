@@ -29,13 +29,62 @@ const LAYER_COLORS: Record<string, [string, string]> = {
 
 export class LayerPanel {
   private container: HTMLElement;
+  private scrollArea: HTMLElement;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private layerEls = new Map<string, { countEl: HTMLElement; statusEl: HTMLElement; tile: HTMLElement; sliderTray: HTMLElement }>();
+  private allTiles: Array<{ el: HTMLElement; layer: IDataLayer; groupHeader?: HTMLElement }> = [];
+  private favorites: Set<string>;
+  private showActiveOnly = false;
 
   constructor(manager: LayerManager) {
     this.container = document.createElement('div');
     this.container.className = 'arc-console';
     document.body.appendChild(this.container);
+
+    // Load favorites from localStorage
+    const savedFavs = localStorage.getItem('lgt_favorites');
+    this.favorites = new Set(savedFavs ? JSON.parse(savedFavs) : []);
+
+    // Search input (visible on hover)
+    const searchInput = document.createElement('input');
+    searchInput.className = 'arc-search';
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Filter layers...';
+    searchInput.addEventListener('input', () => this.filterLayers(searchInput.value));
+    this.container.appendChild(searchInput);
+
+    // Active/All toggle
+    const filterBar = document.createElement('div');
+    filterBar.className = 'arc-filter-bar';
+
+    const allBtn = document.createElement('button');
+    allBtn.className = 'arc-filter-btn active';
+    allBtn.textContent = 'All';
+
+    const activeBtn = document.createElement('button');
+    activeBtn.className = 'arc-filter-btn';
+    activeBtn.textContent = 'Active';
+
+    allBtn.addEventListener('click', () => {
+      this.showActiveOnly = false;
+      allBtn.classList.add('active');
+      activeBtn.classList.remove('active');
+      this.filterLayers(searchInput.value);
+    });
+    activeBtn.addEventListener('click', () => {
+      this.showActiveOnly = true;
+      activeBtn.classList.add('active');
+      allBtn.classList.remove('active');
+      this.filterLayers(searchInput.value);
+    });
+
+    filterBar.appendChild(allBtn);
+    filterBar.appendChild(activeBtn);
+    this.container.appendChild(filterBar);
+
+    // Scrollable layer list
+    this.scrollArea = document.createElement('div');
+    this.scrollArea.className = 'arc-scroll';
 
     // Group layers by category
     const groups = new Map<string, IDataLayer[]>();
@@ -58,14 +107,44 @@ export class LayerPanel {
       const groupHeader = document.createElement('div');
       groupHeader.className = 'arc-group-header';
       groupHeader.textContent = groupLabels[cat] ?? cat;
-      this.container.appendChild(groupHeader);
+      this.scrollArea.appendChild(groupHeader);
 
       for (const layer of layers) {
-        this.container.appendChild(this.createLayerTile(layer, manager));
+        const tile = this.createLayerTile(layer, manager);
+        this.scrollArea.appendChild(tile);
+        this.allTiles.push({ el: tile, layer, groupHeader });
       }
     }
 
+    this.container.appendChild(this.scrollArea);
     this.pollTimer = setInterval(() => this.updateAll(manager), 500);
+  }
+
+  private filterLayers(query: string): void {
+    const q = query.toLowerCase();
+    const visibleGroups = new Set<HTMLElement>();
+
+    for (const { el, layer, groupHeader } of this.allTiles) {
+      const nameMatch = q.length < 2 || layer.manifest.name.toLowerCase().includes(q);
+      const activeMatch = !this.showActiveOnly || layer.isVisible();
+      const show = nameMatch && activeMatch;
+      el.style.display = show ? '' : 'none';
+      if (show && groupHeader) visibleGroups.add(groupHeader);
+    }
+
+    // Show/hide group headers based on whether any child is visible
+    this.scrollArea.querySelectorAll('.arc-group-header').forEach((h) => {
+      (h as HTMLElement).style.display = visibleGroups.has(h as HTMLElement) ? '' : 'none';
+    });
+  }
+
+  private toggleFavorite(layerId: string): void {
+    if (this.favorites.has(layerId)) {
+      this.favorites.delete(layerId);
+    } else {
+      this.favorites.add(layerId);
+    }
+    localStorage.setItem('lgt_favorites', JSON.stringify([...this.favorites]));
   }
 
   private createLayerTile(layer: IDataLayer, manager: LayerManager): HTMLElement {
@@ -146,6 +225,46 @@ export class LayerPanel {
       sliderTray.appendChild(slider);
     }
     tile.appendChild(sliderTray);
+
+    // Attribute filters (from manifest.filters)
+    if (layer.manifest.filters && layer.manifest.filters.length > 0) {
+      const filterTray = document.createElement('div');
+      filterTray.className = 'arc-slider-tray has-slider';
+
+      for (const filterDef of layer.manifest.filters) {
+        if (filterDef.type === 'range' && filterDef.min !== undefined && filterDef.max !== undefined) {
+          const filterLabel = document.createElement('label');
+          filterLabel.textContent = filterDef.label;
+
+          const filterSlider = document.createElement('input');
+          filterSlider.type = 'range';
+          filterSlider.min = String(filterDef.min);
+          filterSlider.max = String(filterDef.max);
+          filterSlider.value = String(filterDef.min);
+          filterSlider.step = String(filterDef.step ?? 1);
+
+          const filterValue = document.createElement('span');
+          filterValue.className = 'arc-filter-value';
+          filterValue.textContent = `\u2265${filterDef.min}`;
+
+          filterSlider.addEventListener('input', () => {
+            const val = parseFloat(filterSlider.value);
+            filterValue.textContent = `\u2265${val}`;
+            if (val > filterDef.min!) {
+              layer.setFilter(filterDef.attr, val);
+            } else {
+              layer.clearFilters();
+            }
+          });
+
+          filterTray.appendChild(filterLabel);
+          filterTray.appendChild(filterSlider);
+          filterTray.appendChild(filterValue);
+        }
+      }
+
+      tile.appendChild(filterTray);
+    }
 
     this.layerEls.set(layer.manifest.id, { countEl, statusEl, tile, sliderTray });
 
