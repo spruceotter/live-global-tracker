@@ -1,19 +1,6 @@
 import type { IDataLayer } from '../core/types';
 import type { LayerManager } from '../core/LayerManager';
-
-const LAYER_SVGS: Record<string, string> = {
-  sat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="10" cy="10" rx="8" ry="3" transform="rotate(-30 10 10)"/><circle cx="10" cy="10" r="2" fill="currentColor" stroke="none"/></svg>',
-  aircraft: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2l2 6h5l-4 3 1.5 5L10 13l-4.5 3L7 11 3 8h5z"/></svg>',
-  quake: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3"/><circle cx="10" cy="10" r="6" opacity="0.5"/><circle cx="10" cy="10" r="8.5" opacity="0.25"/></svg>',
-  fire: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2c0 3-3 5-3 8a3 3 0 006 0c0-1-.5-2-1-3 0 2-2 3-2 1s1-4 0-6z"/></svg>',
-  weather: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M6 14a4 4 0 01-.5-7.97A5.5 5.5 0 0115 7a3.5 3.5 0 01.5 6.97H6z"/></svg>',
-  nightlights: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 105.3 14A6 6 0 0110 2z"/></svg>',
-  volcano: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 3l-1 3h2l-1-3zm-4 5l-4 9h16l-4-9h-2l1 3h-6l1-3z"/></svg>',
-  airquality: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3" fill="currentColor" stroke="none" opacity="0.5"/></svg>',
-  storm: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M12 2l-5 9h4l-3 7 8-10h-4z"/></svg>',
-  ship: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 14l2-8h10l2 8-7-2z"/><rect x="9" y="3" width="2" height="5"/></svg>',
-  gdacs: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 3v4M10 13v4M3 10h4M13 10h4" stroke-linecap="round"/></svg>',
-};
+import { getLayerIcon } from './icons';
 
 const LAYER_COLORS: Record<string, [string, string]> = {
   satellites: ['#a78bfa', 'rgba(167,139,250,0.25)'],
@@ -170,12 +157,7 @@ export class LayerPanel {
 
     const iconEl = document.createElement('span');
     iconEl.className = 'arc-icon';
-    const svgKey = layer.manifest.icon;
-    if (LAYER_SVGS[svgKey]) {
-      iconEl.innerHTML = LAYER_SVGS[svgKey];
-    } else {
-      iconEl.textContent = '?';
-    }
+    iconEl.innerHTML = getLayerIcon(layer.manifest.icon);
 
     const info = document.createElement('span');
     info.className = 'arc-info';
