@@ -156,6 +156,8 @@ export interface IDataLayer {
   getError(): string | null;
 
   setDisplayLimit(limit: number): void;
+  setFilter(attr: string, min?: number, max?: number, values?: string[]): void;
+  clearFilters(): void;
   getMaxEntities(): number;
   getTotalAvailable(): number;
 

@@ -10,6 +10,7 @@ import './styles/hud.css';
 import './styles/connection-manager.css';
 import './styles/timeline.css';
 import './styles/measure.css';
+import './styles/extras.css';
 import './styles/responsive.css';
 import './styles/cesium-overrides.css';
 
@@ -46,6 +47,8 @@ import { SystemStrip } from './ui/SystemStrip';
 import { TimelineBar } from './ui/TimelineBar';
 import { FileDropZone } from './ui/FileDropZone';
 import { MeasureTools } from './ui/MeasureTools';
+import { ExportTools } from './ui/ExportTools';
+import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -127,13 +130,22 @@ async function main() {
   new AppHeader(settingsDrawer, connectionManager);
   const infoCard = new InfoCard();
   setupClickHandler(viewer, manager, infoCard);
-  new SearchOverlay(viewer, manager);
   new ProximityTooltip(viewer, manager);
   new LayerPanel(manager);
   new SystemStrip(manager);
   new TimelineBar(viewer);
   new FileDropZone(viewer, manager);
-  new MeasureTools(viewer);
+  const measureTools = new MeasureTools(viewer);
+  const exportTools = new ExportTools(viewer);
+  const searchOverlay = new SearchOverlay(viewer, manager);
+
+  new KeyboardShortcuts(
+    manager,
+    exportTools,
+    () => searchOverlay.open(),
+    () => connectionManager.toggle(),
+    () => document.querySelector('.measure-toolbar')?.classList.toggle('visible')
+  );
 
   // Viewport ring
   const ring = document.createElement('div');

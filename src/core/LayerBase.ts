@@ -13,6 +13,7 @@ export abstract class LayerBase implements IDataLayer {
   private _displayLimit: number = Infinity;
   private _status: LayerStatus = 'idle';
   private _error: string | null = null;
+  private _filters: Array<{ attr: string; min?: number; max?: number; values?: string[] }> = [];
 
   async initialize(viewer: Cesium.Viewer): Promise<void> {
     this.viewer = viewer;
@@ -27,11 +28,8 @@ export abstract class LayerBase implements IDataLayer {
     try {
       const raw = await this.fetchData();
       this.allFeatures = this.normalize(raw);
-      this.features = this._displayLimit < this.allFeatures.length
-        ? this.allFeatures.slice(0, this._displayLimit)
-        : this.allFeatures;
+      this.applyFiltersAndLimit();
       this.lastUpdated = new Date();
-      this.render(this.features);
       this._status = 'loaded';
     } catch (err) {
       this._status = 'error';
@@ -54,7 +52,41 @@ export abstract class LayerBase implements IDataLayer {
 
   setDisplayLimit(limit: number): void {
     this._displayLimit = limit;
-    this.features = this.allFeatures.slice(0, limit);
+    this.applyFiltersAndLimit();
+  }
+
+  setFilter(attr: string, min?: number, max?: number, values?: string[]): void {
+    const idx = this._filters.findIndex((f) => f.attr === attr);
+    if (idx >= 0) this._filters[idx] = { attr, min, max, values };
+    else this._filters.push({ attr, min, max, values });
+    this.applyFiltersAndLimit();
+  }
+
+  clearFilters(): void {
+    this._filters = [];
+    this.applyFiltersAndLimit();
+  }
+
+  private applyFiltersAndLimit(): void {
+    let filtered = this.allFeatures;
+
+    for (const f of this._filters) {
+      filtered = filtered.filter((feat) => {
+        const val = feat.properties[f.attr];
+        if (f.values && f.values.length > 0) {
+          return f.values.includes(String(val));
+        }
+        if (typeof val === 'number') {
+          if (f.min !== undefined && val < f.min) return false;
+          if (f.max !== undefined && val > f.max) return false;
+        }
+        return true;
+      });
+    }
+
+    this.features = this._displayLimit < filtered.length
+      ? filtered.slice(0, this._displayLimit)
+      : filtered;
     this.render(this.features);
   }
 
