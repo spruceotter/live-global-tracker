@@ -54,9 +54,18 @@ export class InfoCard {
     const viz = this.createVisualization(layerId, feature);
     if (viz) this.container.appendChild(viz);
 
-    // Fields
-    const fieldsContainer = document.createElement('div');
-    fieldsContainer.className = 'info-card-fields';
+    // Tabs
+    const tabBar = document.createElement('div');
+    tabBar.className = 'info-card-tabs';
+    const summaryTab = this.createTab('Summary', true);
+    const detailsTab = this.createTab('Details', false);
+    tabBar.appendChild(summaryTab.btn);
+    tabBar.appendChild(detailsTab.btn);
+    this.container.appendChild(tabBar);
+
+    // Summary panel (fields + actions)
+    const summaryPanel = document.createElement('div');
+    summaryPanel.className = 'info-card-tab-panel';
 
     for (const field of fields) {
       const value = this.resolvePath(feature as unknown as Record<string, unknown>, field.path);
@@ -75,10 +84,70 @@ export class InfoCard {
 
       row.appendChild(labelEl);
       row.appendChild(valueEl);
-      fieldsContainer.appendChild(row);
+      summaryPanel.appendChild(row);
     }
 
-    this.container.appendChild(fieldsContainer);
+    this.container.appendChild(summaryPanel);
+
+    // Details panel (coordinates + external links)
+    const detailsPanel = document.createElement('div');
+    detailsPanel.className = 'info-card-tab-panel';
+    detailsPanel.style.display = 'none';
+
+    const coordRow = document.createElement('div');
+    coordRow.className = 'info-card-field';
+    const coordLabel = document.createElement('span');
+    coordLabel.className = 'field-label';
+    coordLabel.textContent = 'Coordinates';
+    const coordValue = document.createElement('span');
+    coordValue.className = 'field-value';
+    coordValue.textContent = `${feature.lat.toFixed(4)}, ${feature.lon.toFixed(4)}`;
+    coordRow.appendChild(coordLabel);
+    coordRow.appendChild(coordValue);
+    detailsPanel.appendChild(coordRow);
+
+    if (feature.alt) {
+      const altRow = document.createElement('div');
+      altRow.className = 'info-card-field';
+      const altLabel = document.createElement('span');
+      altLabel.className = 'field-label';
+      altLabel.textContent = 'Altitude';
+      const altValue = document.createElement('span');
+      altValue.className = 'field-value';
+      altValue.textContent = `${Math.round(feature.alt).toLocaleString()} m`;
+      altRow.appendChild(altLabel);
+      altRow.appendChild(altValue);
+      detailsPanel.appendChild(altRow);
+    }
+
+    // External links
+    const link = this.getExternalLink(layerId, feature);
+    if (link) {
+      const linkEl = document.createElement('a');
+      linkEl.className = 'info-card-link';
+      linkEl.href = link.url;
+      linkEl.target = '_blank';
+      linkEl.rel = 'noopener';
+      linkEl.textContent = link.label;
+      detailsPanel.appendChild(linkEl);
+    }
+
+    this.container.appendChild(detailsPanel);
+
+    // Tab switching
+    summaryTab.btn.addEventListener('click', () => {
+      summaryTab.btn.classList.add('active');
+      detailsTab.btn.classList.remove('active');
+      summaryPanel.style.display = '';
+      detailsPanel.style.display = 'none';
+    });
+    detailsTab.btn.addEventListener('click', () => {
+      detailsTab.btn.classList.add('active');
+      summaryTab.btn.classList.remove('active');
+      detailsPanel.style.display = '';
+      summaryPanel.style.display = 'none';
+    });
+
     this.container.classList.add('open');
     this.visible = true;
   }
@@ -165,6 +234,26 @@ export class InfoCard {
     viz.appendChild(track);
     viz.appendChild(value);
     return viz;
+  }
+
+  private createTab(label: string, active: boolean): { btn: HTMLElement } {
+    const btn = document.createElement('button');
+    btn.className = `info-card-tab${active ? ' active' : ''}`;
+    btn.textContent = label;
+    return { btn };
+  }
+
+  private getExternalLink(layerId: string | undefined, feature: NormalizedFeature): { url: string; label: string } | null {
+    if (layerId === 'earthquakes' && feature.properties.url) {
+      return { url: String(feature.properties.url), label: 'View on USGS' };
+    }
+    if (layerId === 'satellites') {
+      return { url: `https://celestrak.org/NORAD/elements/table.php?INTDES=${feature.id}`, label: 'View on CelesTrak' };
+    }
+    if (layerId === 'volcanoes' && feature.properties.webpage) {
+      return { url: String(feature.properties.webpage), label: 'Smithsonian GVP' };
+    }
+    return null;
   }
 
   private resolvePath(obj: Record<string, unknown>, path: string): unknown {
