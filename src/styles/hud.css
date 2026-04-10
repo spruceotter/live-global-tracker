@@ -24,6 +24,23 @@
   opacity: 1;
 }
 
+/* Arc Console expand hint */
+.arc-console::after {
+  content: '\u203A';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  padding: 4px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.15);
+  transition: opacity 300ms ease;
+}
+
+.arc-console:hover::after {
+  opacity: 0;
+}
+
 /* Arc Console — collapsible layer control */
 .arc-console {
   position: fixed;

@@ -148,13 +148,15 @@ async function main() {
   appHeader.addButton('\u2606', 'Bookmarks', () => bookmarks.toggle());
   appHeader.addButton('+', 'Add Custom Source', () => customWizard.open());
 
-  new KeyboardShortcuts(
+  const shortcuts = new KeyboardShortcuts(
+    viewer,
     manager,
     exportTools,
     () => searchOverlay.open(),
     () => connectionManager.toggle(),
     () => document.querySelector('.measure-toolbar')?.classList.toggle('visible')
   );
+  appHeader.setHelpAction(() => shortcuts.toggle());
 
   // Viewport ring
   const ring = document.createElement('div');

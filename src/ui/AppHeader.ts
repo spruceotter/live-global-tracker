@@ -4,6 +4,7 @@ import type { ConnectionManager } from './ConnectionManager';
 export class AppHeader {
   private container: HTMLElement;
   private rightGroup: HTMLElement;
+  private helpBtn: HTMLElement | null = null;
 
   constructor(settingsDrawer?: SettingsDrawer, connectionManager?: ConnectionManager) {
     this.container = document.createElement('header');
@@ -34,13 +35,29 @@ export class AppHeader {
     gear.textContent = '\u2699';
     gear.addEventListener('click', () => settingsDrawer?.toggle());
 
+    // Help button — most discoverable way to find shortcuts
+    const helpBtn = document.createElement('button');
+    helpBtn.className = 'header-btn';
+    helpBtn.title = 'Keyboard shortcuts (?)';
+    helpBtn.textContent = '?';
+    helpBtn.style.fontSize = '14px';
+    helpBtn.style.fontWeight = '600';
+
     this.rightGroup.appendChild(searchHint);
     this.rightGroup.appendChild(sourcesBtn);
+    this.rightGroup.appendChild(helpBtn);
     this.rightGroup.appendChild(gear);
+    // Dynamic buttons (☆, +) are added via addButton() after construction
+
+    this.helpBtn = helpBtn;
 
     this.container.appendChild(title);
     this.container.appendChild(this.rightGroup);
     document.body.appendChild(this.container);
+  }
+
+  setHelpAction(action: () => void): void {
+    this.helpBtn?.addEventListener('click', action);
   }
 
   addButton(label: string, title: string, onClick: () => void): void {

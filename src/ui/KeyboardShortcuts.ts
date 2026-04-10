@@ -1,3 +1,4 @@
+import * as Cesium from 'cesium';
 import type { LayerManager } from '../core/LayerManager';
 import type { ExportTools } from './ExportTools';
 
@@ -14,6 +15,7 @@ export class KeyboardShortcuts {
   private shortcuts: ShortcutDef[] = [];
 
   constructor(
+    viewer: Cesium.Viewer,
     manager: LayerManager,
     exportTools: ExportTools,
     openSearch: () => void,
@@ -23,7 +25,13 @@ export class KeyboardShortcuts {
     // Register all shortcuts
     this.shortcuts = [
       { key: '\u2318K', label: 'Search', group: 'Navigation', action: openSearch },
-      { key: 'R', label: 'Reset camera', group: 'Navigation', action: () => {} },
+      { key: 'R', label: 'Reset camera', group: 'Navigation', action: () => {
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(-30, 20, 25_000_000),
+          orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+          duration: 2,
+        });
+      }},
       { key: 'D', label: 'Data sources', group: 'Panels', action: openSources },
       { key: 'M', label: 'Measure tools', group: 'Panels', action: toggleMeasure },
       { key: 'Space', label: 'Play / pause timeline', group: 'Playback', action: () => {} },
