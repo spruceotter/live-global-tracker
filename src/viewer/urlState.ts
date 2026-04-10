@@ -70,7 +70,7 @@ function restoreFromHash(viewer: Cesium.Viewer, manager: LayerManager): void {
     for (const layer of manager.getAll()) {
       if (activeIds.has(layer.manifest.id) && !layer.isVisible()) {
         manager.toggleLayer(layer.manifest.id);
-      } else if (!activeIds.has(layer.manifest.id) && layer.isVisible()) {
+      } else if (!activeIds.has(layer.manifest.id) && layer.isVisible() && layer.getLastUpdated() !== null) {
         layer.setVisible(false);
       }
     }

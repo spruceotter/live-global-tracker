@@ -84,6 +84,6 @@ export class AircraftLayer extends LayerBase {
   }
 
   protected applyVisibility(visible: boolean): void {
-    this.renderer.setVisible(visible);
+    this.renderer?.setVisible(visible);
   }
 }

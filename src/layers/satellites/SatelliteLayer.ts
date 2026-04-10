@@ -126,11 +126,11 @@ export class SatelliteLayer extends LayerBase {
   protected clearRenderer(): void {
     this.stopPropagation();
     this.orbitRenderer.destroy();
-    this.renderer.destroy();
+    this.renderer?.destroy();
   }
 
   protected applyVisibility(visible: boolean): void {
-    this.renderer.setVisible(visible);
+    this.renderer?.setVisible(visible);
     if (visible) {
       this.startPropagation();
     } else {
