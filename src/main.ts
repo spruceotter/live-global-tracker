@@ -50,6 +50,7 @@ import { MeasureTools } from './ui/MeasureTools';
 import { ExportTools } from './ui/ExportTools';
 import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
 import { Bookmarks } from './ui/Bookmarks';
+import { CustomSourceWizard } from './ui/CustomSourceWizard';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -126,6 +127,7 @@ async function main() {
   }
 
   // HUD UI
+  const customWizard = new CustomSourceWizard(manager, dsStore, catalog);
   const connectionManager = new ConnectionManager(manager, catalog, dsStore);
   const settingsDrawer = new SettingsDrawer();
   const appHeader = new AppHeader(settingsDrawer, connectionManager);

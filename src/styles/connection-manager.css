@@ -302,6 +302,69 @@
   color: var(--accent-danger);
 }
 
+/* Custom Source Wizard */
+.wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.wizard-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.wizard-modal {
+  width: 440px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 80px);
+  border-radius: 20px;
+  overflow-y: auto;
+}
+
+.wizard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.wizard-header h2 {
+  font-family: var(--font-ui);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wizard-form {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wizard-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wizard-field select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 /* Mobile */
 @media (max-width: 639px) {
   .cm-modal {
