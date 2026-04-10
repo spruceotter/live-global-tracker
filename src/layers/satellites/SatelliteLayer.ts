@@ -65,7 +65,12 @@ export class SatelliteLayer extends LayerBase {
           })
       )
     );
-    return results.join('\n');
+    const combined = results.join('\n');
+    // If all groups failed (empty result), throw so layer enters error state with retry
+    if (combined.trim().length === 0) {
+      throw new Error('CelesTrak unavailable — all groups returned empty (may be rate-limited)');
+    }
+    return combined;
   }
 
   protected normalize(raw: unknown): NormalizedFeature[] {
