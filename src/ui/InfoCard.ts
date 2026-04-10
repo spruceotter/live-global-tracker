@@ -6,6 +6,10 @@ const LAYER_ACCENT: Record<string, string> = {
   earthquakes: '#ef4444',
   fires: '#f97316',
   weather: '#94a3b8',
+  nightlights: '#fbbf24',
+  volcanoes: '#dc2626',
+  weatheralerts: '#f59e0b',
+  gdacs: '#ec4899',
 };
 
 export class InfoCard {

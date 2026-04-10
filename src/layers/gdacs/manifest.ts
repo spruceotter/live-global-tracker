@@ -4,7 +4,7 @@ export const gdacsManifest: LayerManifest = {
   id: 'gdacs',
   name: 'Global Disasters',
   category: 'hazards',
-  icon: 'storm',
+  icon: 'gdacs',
   description: 'UN GDACS global disaster alerts — earthquakes, cyclones, floods, volcanoes',
 
   source: {

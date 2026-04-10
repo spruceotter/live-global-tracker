@@ -4,7 +4,7 @@ export const volcanoManifest: LayerManifest = {
   id: 'volcanoes',
   name: 'Volcanoes',
   category: 'hazards',
-  icon: 'quake',
+  icon: 'volcano',
   description: 'Active and Holocene volcanoes from the Smithsonian Global Volcanism Program',
 
   source: {

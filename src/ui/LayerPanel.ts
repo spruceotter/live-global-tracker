@@ -12,6 +12,7 @@ const LAYER_SVGS: Record<string, string> = {
   airquality: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3" fill="currentColor" stroke="none" opacity="0.5"/></svg>',
   storm: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M12 2l-5 9h4l-3 7 8-10h-4z"/></svg>',
   ship: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 14l2-8h10l2 8-7-2z"/><rect x="9" y="3" width="2" height="5"/></svg>',
+  gdacs: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 3v4M10 13v4M3 10h4M13 10h4" stroke-linecap="round"/></svg>',
 };
 
 const LAYER_COLORS: Record<string, [string, string]> = {

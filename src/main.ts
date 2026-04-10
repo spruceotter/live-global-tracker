@@ -146,6 +146,7 @@ async function main() {
     manager.getAll().filter((l) => l.isVisible()).map((l) => l.manifest.id)
   );
   appHeader.addButton('\u2606', 'Bookmarks', () => bookmarks.toggle());
+  appHeader.addButton('+', 'Add Custom Source', () => customWizard.open());
 
   new KeyboardShortcuts(
     manager,

@@ -42,7 +42,7 @@ export class SearchOverlay {
     this.input = document.createElement('input');
     this.input.type = 'text';
     this.input.className = 'search-input';
-    this.input.placeholder = 'Search satellites, aircraft, earthquakes...';
+    this.input.placeholder = 'Search satellites, aircraft, earthquakes, volcanoes...';
 
     const hint = document.createElement('span');
     hint.className = 'search-hint';
@@ -114,7 +114,7 @@ export class SearchOverlay {
           ...m,
         });
       }
-      if (results.length >= 8) break;
+      if (results.length >= 20) break;
     }
 
     this.renderResults(results);

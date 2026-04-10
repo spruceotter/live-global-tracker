@@ -12,6 +12,7 @@ interface SmithsonianVolcano {
   longitude: number;
   elevation_m: number;
   obsAbbr: string;
+  webpage?: string;
 }
 
 export class VolcanoLayer extends LayerBase {
@@ -45,6 +46,7 @@ export class VolcanoLayer extends LayerBase {
           subregion: v.subregion,
           elevation_m: v.elevation_m,
           observatory: v.obsAbbr,
+          webpage: v.webpage,
         },
       }));
   }

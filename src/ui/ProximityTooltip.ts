@@ -91,6 +91,15 @@ export class ProximityTooltip {
     if (layerId === 'fires') {
       return `Fire \u2014 FRP ${feature.properties.frp} MW`;
     }
+    if (layerId === 'volcanoes') {
+      return `${feature.label} \u2014 ${feature.properties.elevation_m}m, ${feature.properties.country}`;
+    }
+    if (layerId === 'weatheralerts') {
+      return `${feature.label}`;
+    }
+    if (layerId === 'gdacs') {
+      return `${feature.label} \u2014 ${feature.properties.alertlevel}`;
+    }
     return feature.label ?? feature.id;
   }
 

@@ -6,10 +6,12 @@ export class PolygonRenderer implements IRenderer {
   private viewer: Cesium.Viewer;
   private dataSource: Cesium.CustomDataSource;
   private featureIds: string[] = [];
+  private layerId: string;
 
-  constructor(viewer: Cesium.Viewer) {
+  constructor(viewer: Cesium.Viewer, layerId = 'polygon') {
     this.viewer = viewer;
-    this.dataSource = new Cesium.CustomDataSource('polygons');
+    this.layerId = layerId;
+    this.dataSource = new Cesium.CustomDataSource(layerId);
     viewer.dataSources.add(this.dataSource);
   }
 
@@ -50,7 +52,7 @@ export class PolygonRenderer implements IRenderer {
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         },
         properties: new Cesium.PropertyBag({
-          layerId: 'polygon',
+          layerId: this.layerId,
           featureId: f.id,
         }),
       });

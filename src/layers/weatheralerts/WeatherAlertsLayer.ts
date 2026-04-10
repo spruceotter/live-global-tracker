@@ -24,7 +24,7 @@ export class WeatherAlertsLayer extends LayerBase {
   private renderer!: PolygonRenderer;
 
   protected setupRenderer(): void {
-    this.renderer = new PolygonRenderer(this.viewer);
+    this.renderer = new PolygonRenderer(this.viewer, 'weatheralerts');
   }
 
   protected async fetchData(): Promise<unknown> {
