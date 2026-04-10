@@ -3,6 +3,7 @@ import type { LayerManager } from '../core/LayerManager';
 import type { InfoCard } from '../ui/InfoCard';
 import type { IRenderer } from '../rendering/RendererRegistry';
 import type { SatelliteLayer } from '../layers/satellites/SatelliteLayer';
+import { stopFollowCam } from './followCam';
 
 export function setupClickHandler(
   viewer: Cesium.Viewer,
@@ -14,7 +15,8 @@ export function setupClickHandler(
   handler.setInputAction((movement: { position: Cesium.Cartesian2 }) => {
     const picked = viewer.scene.pick(movement.position);
 
-    // Clear satellite orbit on any click
+    // Clear satellite orbit and stop follow-cam on any click
+    stopFollowCam(viewer);
     const satLayer = manager.getById('satellites');
     if (satLayer && 'clearOrbit' in satLayer) {
       (satLayer as SatelliteLayer).clearOrbit();

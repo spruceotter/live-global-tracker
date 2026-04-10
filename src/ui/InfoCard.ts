@@ -15,8 +15,10 @@ const LAYER_ACCENT: Record<string, string> = {
 export class InfoCard {
   private container: HTMLElement;
   private visible = false;
+  private onFollow: ((feature: NormalizedFeature, layerId: string) => void) | null = null;
 
-  constructor() {
+  constructor(onFollow?: (feature: NormalizedFeature, layerId: string) => void) {
+    this.onFollow = onFollow ?? null;
     this.container = document.createElement('div');
     this.container.className = 'info-card glass';
     document.body.appendChild(this.container);
@@ -151,6 +153,24 @@ export class InfoCard {
       detailsPanel.style.display = '';
       summaryPanel.style.display = 'none';
     });
+
+    // Track button (follow-cam)
+    if (this.onFollow && layerId && layerId !== '_geo') {
+      const actionBar = document.createElement('div');
+      actionBar.className = 'info-card-actions';
+
+      const trackBtn = document.createElement('button');
+      trackBtn.className = 'info-card-track';
+      trackBtn.textContent = '\u25CE TRACK';
+      trackBtn.addEventListener('click', () => {
+        this.onFollow?.(feature, layerId!);
+        trackBtn.classList.add('active');
+        trackBtn.textContent = '\u25CE TRACKING';
+      });
+
+      actionBar.appendChild(trackBtn);
+      this.container.appendChild(actionBar);
+    }
 
     this.container.classList.add('open');
     this.visible = true;

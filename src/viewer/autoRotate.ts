@@ -1,10 +1,11 @@
 import * as Cesium from 'cesium';
+import { isFollowing } from './followCam';
 
 export function setupAutoRotate(viewer: Cesium.Viewer): void {
   let rotating = true;
 
   viewer.clock.onTick.addEventListener(() => {
-    if (rotating) {
+    if (rotating && !isFollowing()) {
       viewer.camera.rotateRight(Cesium.Math.toRadians(0.03));
     }
   });

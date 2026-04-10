@@ -46,6 +46,7 @@ import { SystemStrip } from './ui/SystemStrip';
 import { TimelineBar } from './ui/TimelineBar';
 import { FileDropZone } from './ui/FileDropZone';
 import { MeasureTools } from './ui/MeasureTools';
+import { startFollowCam, stopFollowCam, isFollowing } from './viewer/followCam';
 import { ExportTools } from './ui/ExportTools';
 import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
 import { Bookmarks } from './ui/Bookmarks';
@@ -129,7 +130,9 @@ async function main() {
   const customWizard = new CustomSourceWizard(manager, dsStore, catalog);
   const connectionManager = new ConnectionManager(manager, catalog, dsStore);
   const appHeader = new AppHeader(connectionManager);
-  const infoCard = new InfoCard();
+  const infoCard = new InfoCard((feature, layerId) => {
+    startFollowCam(viewer, feature, layerId);
+  });
   setupClickHandler(viewer, manager, infoCard);
   new ProximityTooltip(viewer, manager);
   new LayerPanel(manager);
