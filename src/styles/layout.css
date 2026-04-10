@@ -1,3 +1,38 @@
+/* File drop zone */
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(96, 165, 250, 0.08);
+  border: 3px dashed rgba(96, 165, 250, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.drop-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drop-label {
+  font-family: var(--font-ui);
+  font-size: var(--text-xl);
+  font-weight: 400;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+}
+
+.drop-hint {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
 #cesiumContainer {
   position: fixed;
   inset: 0;
