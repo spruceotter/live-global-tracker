@@ -2,6 +2,28 @@
    HUD DESIGN SYSTEM — Mission Control Aesthetic
    ============================================================ */
 
+/* Group headers in Arc Console */
+.arc-group-header {
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  padding: 6px 12px 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  opacity: 0;
+  transition: width 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 200ms ease 80ms;
+}
+
+.arc-console:hover .arc-group-header {
+  width: auto;
+  opacity: 1;
+}
+
 /* Arc Console — collapsible layer control */
 .arc-console {
   position: fixed;

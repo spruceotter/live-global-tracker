@@ -36,8 +36,32 @@ export class LayerPanel {
     this.container.className = 'arc-console';
     document.body.appendChild(this.container);
 
+    // Group layers by category
+    const groups = new Map<string, IDataLayer[]>();
+    const groupOrder = ['tracking', 'hazards', 'weather', 'environment', 'infrastructure'];
+    const groupLabels: Record<string, string> = {
+      tracking: 'Tracking', hazards: 'Hazards', weather: 'Weather',
+      environment: 'Environment', infrastructure: 'Infrastructure',
+    };
+
     for (const layer of manager.getAll()) {
-      this.container.appendChild(this.createLayerTile(layer, manager));
+      const cat = layer.manifest.category;
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat)!.push(layer);
+    }
+
+    for (const cat of groupOrder) {
+      const layers = groups.get(cat);
+      if (!layers || layers.length === 0) continue;
+
+      const groupHeader = document.createElement('div');
+      groupHeader.className = 'arc-group-header';
+      groupHeader.textContent = groupLabels[cat] ?? cat;
+      this.container.appendChild(groupHeader);
+
+      for (const layer of layers) {
+        this.container.appendChild(this.createLayerTile(layer, manager));
+      }
     }
 
     this.pollTimer = setInterval(() => this.updateAll(manager), 500);
