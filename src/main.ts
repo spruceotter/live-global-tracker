@@ -101,6 +101,16 @@ async function main() {
   manager.register(new WeatherAlertsLayer());
   manager.register(new GdacsLayer());
 
+  // Data Source Manager (initialize before layers so persisted configs are available)
+  const catalog = new CatalogRegistry();
+  const dsStore = new DataSourceStore();
+  for (const entry of BUILT_IN_CATALOG) {
+    catalog.registerEntry(entry);
+  }
+  for (const custom of dsStore.getCustomSources()) {
+    catalog.registerEntry(custom);
+  }
+
   // Loading overlay
   const loadingOverlay = new LoadingOverlay();
   loadingOverlay.track(manager);
@@ -115,16 +125,6 @@ async function main() {
   setupZoomController(viewer, manager);
   setup3DBuildings(viewer);
   setupUrlState(viewer, manager);
-
-  // Data Source Manager
-  const catalog = new CatalogRegistry();
-  const dsStore = new DataSourceStore();
-  for (const entry of BUILT_IN_CATALOG) {
-    catalog.registerEntry(entry);
-  }
-  for (const custom of dsStore.getCustomSources()) {
-    catalog.registerEntry(custom);
-  }
 
   // HUD UI
   const customWizard = new CustomSourceWizard(manager, dsStore, catalog);

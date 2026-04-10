@@ -89,4 +89,14 @@
   --z-notification: 70;
   --z-search: 80;
   --z-settings: 90;
+  --z-modal: 95;
+  --z-wizard: 96;
+  --z-loading: 100;
+  --z-drop-zone: 200;
+
+  /* New layer colors */
+  --nightlights: #fbbf24;
+  --volcano: #dc2626;
+  --alert-warning: #f59e0b;
+  --gdacs: #ec4899;
 }

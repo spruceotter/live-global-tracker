@@ -103,6 +103,24 @@ export class SearchOverlay {
       return;
     }
 
+    // Check for raw coordinates first (e.g., "37.77,-122.42")
+    const coordMatch = query.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lon = parseFloat(coordMatch[2]);
+      if (!isNaN(lat) && !isNaN(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+        this.renderResults([{
+          layerId: '_geo',
+          layerName: 'Coordinates',
+          id: 'coords',
+          label: `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+          lat, lon,
+        }]);
+        return;
+      }
+    }
+
+    // Entity search across all layers
     const results: SearchResult[] = [];
     for (const layer of this.manager.getAll()) {
       if (!layer.isVisible()) continue;
@@ -114,10 +132,46 @@ export class SearchOverlay {
           ...m,
         });
       }
-      if (results.length >= 20) break;
+      if (results.length >= 15) break;
     }
 
     this.renderResults(results);
+
+    // Geocode place names via Nominatim (debounced)
+    if (query.length >= 3) {
+      this.geocode(query, results);
+    }
+  }
+
+  private geocodeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private geocode(query: string, existingResults: SearchResult[]): void {
+    if (this.geocodeTimer) clearTimeout(this.geocodeTimer);
+    this.geocodeTimer = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}`,
+          { headers: { 'User-Agent': 'LiveGlobalTracker/0.4' } }
+        );
+        if (!response.ok) return;
+        const places = await response.json() as Array<{ display_name: string; lat: string; lon: string; type: string }>;
+
+        const geoResults: SearchResult[] = places.map((p) => ({
+          layerId: '_geo',
+          layerName: 'Place',
+          id: `geo-${p.lat}-${p.lon}`,
+          label: p.display_name,
+          lat: parseFloat(p.lat),
+          lon: parseFloat(p.lon),
+        }));
+
+        // Merge with existing entity results
+        const merged = [...existingResults, ...geoResults].slice(0, 20);
+        this.renderResults(merged);
+      } catch {
+        // Geocoding failed silently — entity results still shown
+      }
+    }, 300);
   }
 
   private renderResults(results: SearchResult[]): void {

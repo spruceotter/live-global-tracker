@@ -45,7 +45,7 @@ export class SystemStrip {
     this.timeEl.textContent = `${now.getUTCHours().toString().padStart(2, '0')}:${now.getUTCMinutes().toString().padStart(2, '0')}:${now.getUTCSeconds().toString().padStart(2, '0')} UTC`;
 
     const total = this.manager.getAll()
-      .filter((l) => l.isVisible())
+      .filter((l) => l.isVisible() && l.manifest.rendering.strategy !== 'imagery')
       .reduce((sum, l) => sum + l.getFeatureCount(), 0);
 
     this.totalEl.textContent = `${total.toLocaleString()} entities tracked`;

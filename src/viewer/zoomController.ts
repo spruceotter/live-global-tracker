@@ -10,7 +10,9 @@ const THRESHOLDS = {
   regional: 100_000,
 };
 
-const LAYER_HIDE_ABOVE: Record<string, number> = {};
+const LAYER_HIDE_ABOVE: Record<string, number> = {
+  weatheralerts: 5_000_000, // hide alert polygons above 5000km (too noisy at orbital)
+};
 
 const LAYER_HIDE_BELOW: Record<string, number> = {
   satellites: 200_000,

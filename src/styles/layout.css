@@ -2,7 +2,7 @@
 .drop-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-drop-zone);
   background: rgba(96, 165, 250, 0.08);
   border: 3px dashed rgba(96, 165, 250, 0.4);
   display: flex;
@@ -97,8 +97,6 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
 }
-
-.layer-panel {
   position: fixed;
   left: 16px;
   top: 50%;
