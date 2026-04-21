@@ -43,6 +43,9 @@ export function setupClickHandler(
               if (layer.manifest.id === 'satellites' && 'showOrbit' in layer) {
                 (layer as unknown as SatelliteLayer).showOrbit(featureId);
               }
+              if (layer.manifest.id === 'webcams') {
+                document.dispatchEvent(new CustomEvent('webcam:play', { detail: { feature } }));
+              }
               return;
             }
           }

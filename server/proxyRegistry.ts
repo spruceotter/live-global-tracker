@@ -37,11 +37,13 @@ export function buildProxyRouter(): Router {
         }
         const response = await fetchPromise as globalThis.Response;
         if (!response.ok) {
-          // On 429, serve stale cache if available
-          if (response.status === 429) {
+          // On any throttling response (403/429), serve stale cache if available.
+          // CelesTrak returns 403 when its anti-abuse layer trips; we'd rather
+          // show last-known data than empty the layer.
+          if (response.status === 403 || response.status === 429) {
             const stale = cache.getStale(cacheKey);
             if (stale) {
-              console.warn(`[proxy] ${source.route}: 429 rate limited, serving stale cache`);
+              console.warn(`[proxy] ${source.route}: ${response.status} throttled, serving stale cache`);
               res.type(source.contentType === 'json' ? 'application/json' : 'text/plain');
               return res.send(stale);
             }

@@ -28,8 +28,12 @@ export class NightLightsLayer extends LayerBase {
     });
 
     this.imageryLayer = this.viewer.imageryLayers.addImageryProvider(provider);
-    this.imageryLayer.alpha = 0.85;
     this.imageryLayer.brightness = 1.5;
+    // Bind alpha to the day/night terminator so city lights only glow on the
+    // dark side of the globe, fading in along Cesium's smooth shading curve.
+    // Requires scene.globe.enableLighting = true (set in initViewer.ts).
+    this.imageryLayer.dayAlpha = 0.0;
+    this.imageryLayer.nightAlpha = 0.95;
   }
 
   protected async fetchData(): Promise<unknown> {

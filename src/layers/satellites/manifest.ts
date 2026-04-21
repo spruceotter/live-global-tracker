@@ -38,12 +38,16 @@ export const satelliteManifest: LayerManifest = {
   interaction: {
     detailFields: [
       { label: 'Name', path: 'label', format: 'text' },
+      { label: 'Operator', path: 'properties.country', format: 'text' },
+      { label: 'Purpose', path: 'properties.purpose', format: 'text' },
+      { label: 'Status', path: 'properties.status', format: 'text' },
+      { label: 'Launched', path: 'properties.launchDate', format: 'text' },
       { label: 'NORAD ID', path: 'properties.noradId', format: 'text' },
       { label: 'Altitude (km)', path: 'properties.altKm', format: 'number' },
       { label: 'Latitude', path: 'lat', format: 'latlon' },
       { label: 'Longitude', path: 'lon', format: 'latlon' },
       { label: 'Velocity (km/s)', path: 'properties.velocityKmS', format: 'number' },
-      { label: 'Group', path: 'properties.group', format: 'text' },
+      { label: 'Object type', path: 'properties.objectType', format: 'text' },
     ],
   },
 

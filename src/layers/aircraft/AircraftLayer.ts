@@ -3,6 +3,7 @@ import type { NormalizedFeature } from '../../core/types';
 import { aircraftManifest } from './manifest';
 import { BillboardRenderer } from '../../rendering/renderers/BillboardRenderer';
 import { config } from '../../config';
+import { scoreAircraft } from './aircraftInterest';
 
 // OpenSky state vector indices
 const ICAO24 = 0;
@@ -49,7 +50,14 @@ export class AircraftLayer extends LayerBase {
       const velocityMs = (s[VELOCITY] as number | null) ?? 0;
       const callsign = ((s[CALLSIGN] as string) ?? '').trim();
 
-      const category = altKm > 10 ? 'high' : altKm > 3 ? 'mid' : 'low';
+      const verticalRate = (s[VERTICAL_RATE] as number | null) ?? null;
+      const interest = scoreAircraft(callsign, altKm, velocityMs, verticalRate);
+      // "Interesting" overrides the altitude category so the user's eye lands
+      // on the cool stuff. The detail card still surfaces the underlying
+      // altitude band via properties.altitude.
+      const category = interest.interesting
+        ? 'interesting'
+        : altKm > 10 ? 'high' : altKm > 3 ? 'mid' : 'low';
 
       const altFt = Math.round(altM * 3.28084);
       const velocityKmH = Math.round(velocityMs * 3.6);
@@ -67,7 +75,9 @@ export class AircraftLayer extends LayerBase {
           altitude: `${Math.round(altM).toLocaleString()} m (${altFt.toLocaleString()} ft)`,
           velocity: `${velocityKmH} km/h (${velocityKt} kt)`,
           heading: s[HEADING] as number,
-          verticalRate: s[VERTICAL_RATE] as number,
+          verticalRate,
+          interesting: interest.interesting,
+          interestReason: interest.detail ?? '',
         },
       });
     }

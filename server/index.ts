@@ -1,5 +1,7 @@
 import express from 'express';
+import { createServer } from 'http';
 import { buildProxyRouter } from './proxyRegistry.js';
+import { BlitzortungFanout } from './wsProxy.js';
 
 const app = express();
 const PORT = 3001;
@@ -12,6 +14,13 @@ app.use((_, res, next) => {
 
 app.use('/api', buildProxyRouter());
 
-app.listen(PORT, () => {
+// Wrap Express in an http.Server so we can attach the WebSocket fan-out
+const httpServer = createServer(app);
+
+// Blitzortung lightning fan-out at ws://host:3001/ws/lightning
+new BlitzortungFanout(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
+  console.log(`Lightning fan-out at ws://localhost:${PORT}/ws/lightning`);
 });

@@ -3,6 +3,28 @@ import { LayerBase } from '../../core/LayerBase';
 import type { NormalizedFeature } from '../../core/types';
 import { earthquakeManifest } from './manifest';
 
+const ONE_HOUR_MS = 3_600_000;
+const ONE_DAY_MS = 86_400_000;
+
+/**
+ * Alpha curve for the "always-on pulse" ripple.
+ *   < 1h: sine-pulse between [peak*0.5, peak] every 3s
+ *   < 24h: linear fade from peak → tail
+ *   > 24h: stays at tail
+ */
+function rippleAlpha(ageMs: number, peak: number, tail: number): number {
+  if (ageMs < 0) return peak;
+  if (ageMs < ONE_HOUR_MS) {
+    const phase = Math.sin((ageMs / 3000) * Math.PI * 2);
+    return peak * (0.75 + 0.25 * phase);
+  }
+  if (ageMs < ONE_DAY_MS) {
+    const t = (ageMs - ONE_HOUR_MS) / (ONE_DAY_MS - ONE_HOUR_MS);
+    return peak + (tail - peak) * t;
+  }
+  return tail;
+}
+
 interface USGSFeature {
   properties: {
     mag: number;
@@ -60,26 +82,36 @@ export class EarthquakeLayer extends LayerBase {
   protected render(features: NormalizedFeature[]): void {
     this.dataSource.entities.removeAll();
 
-    const now = Date.now();
     for (const f of features) {
       const mag = (f.properties.mag as number) ?? 1;
       const depth = (f.properties.depth as number) ?? 0;
-      const age = f.timestamp ? now - f.timestamp : Infinity;
-      const isRecent = age < 3600_000; // less than 1 hour
+      const timestamp = typeof f.timestamp === 'number' ? f.timestamp : Date.now();
 
-      const radius = Math.max(mag * mag * 2000, 5000);
+      const baseRadius = Math.max(mag * mag * 2000, 5000);
       const color = this.depthColor(depth);
-      const alpha = isRecent ? 0.7 : 0.4;
+
+      // Animated alpha tied to Cesium's clock so quakes pulse for the first
+      // hour, then fade out over 24h. Creates the "always-on pulse" the Data
+      // Review calls for — globe never looks empty, even during quiet hours.
+      const fillAlpha = new Cesium.CallbackProperty((time) => {
+        const nowMs = time ? Cesium.JulianDate.toDate(time).getTime() : Date.now();
+        return color.withAlpha(rippleAlpha(nowMs - timestamp, 0.35, 0.15));
+      }, false);
+
+      const outlineAlpha = new Cesium.CallbackProperty((time) => {
+        const nowMs = time ? Cesium.JulianDate.toDate(time).getTime() : Date.now();
+        return color.withAlpha(rippleAlpha(nowMs - timestamp, 0.85, 0.25));
+      }, false);
 
       this.dataSource.entities.add({
         position: Cesium.Cartesian3.fromDegrees(f.lon, f.lat),
         ellipse: {
-          semiMajorAxis: radius,
-          semiMinorAxis: radius,
-          material: color.withAlpha(alpha),
+          semiMajorAxis: baseRadius,
+          semiMinorAxis: baseRadius,
+          material: new Cesium.ColorMaterialProperty(fillAlpha),
           outline: true,
-          outlineColor: color.withAlpha(alpha + 0.15),
-          outlineWidth: 1,
+          outlineColor: outlineAlpha,
+          outlineWidth: 1.5,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         },
         properties: new Cesium.PropertyBag({
