@@ -12,6 +12,7 @@ import {
 } from './propagator';
 import { OrbitPathRenderer } from './orbit';
 import { config } from '../../config';
+import { loadSatcat, getSatcatRecord, describeSatcat, countryBucket } from './satcat';
 
 const SAT_COLORS: Record<string, string> = {
   iss: '#fbbf24',
@@ -35,6 +36,13 @@ export class SatelliteLayer extends LayerBase {
     this.orbitRenderer = new OrbitPathRenderer(this.viewer);
   }
 
+  /** Expose the loaded satellite records so the historical-context service
+   * can reuse them for "satellites overhead at this photo timestamp" queries
+   * without an extra network fetch. */
+  getSatRecords(): SatRecord[] {
+    return this.satRecords;
+  }
+
   showOrbit(featureId: string): void {
     const idx = this.features.findIndex((f) => f.id === featureId);
     if (idx < 0 || idx >= this.activeSatRecords.length) {
@@ -52,6 +60,11 @@ export class SatelliteLayer extends LayerBase {
   }
 
   protected async fetchData(): Promise<string> {
+    // Kick SATCAT load in parallel with TLEs. loadSatcat() is idempotent —
+    // subsequent refreshes read from the in-memory cache. We await it before
+    // returning so normalize() can enrich synchronously via getSatcatRecord().
+    const satcatPromise = loadSatcat();
+
     const results = await Promise.all(
       config.satelliteGroups.map((group) =>
         fetch(`/api/celestrak/${group}`)
@@ -65,6 +78,7 @@ export class SatelliteLayer extends LayerBase {
           })
       )
     );
+    await satcatPromise;
     const combined = results.join('\n');
     // If all groups failed (empty result), throw so layer enters error state with retry
     if (combined.trim().length === 0) {
@@ -97,6 +111,8 @@ export class SatelliteLayer extends LayerBase {
       if (!pos) continue;
 
       const cat = classifyGroup(rec.name, rec.group);
+      const satcatRec = getSatcatRecord(pos.noradId);
+      const derived = describeSatcat(satcatRec);
       // Push to both arrays in lockstep so indices stay aligned
       this.activeSatRecords.push(rec);
       features.push({
@@ -111,6 +127,12 @@ export class SatelliteLayer extends LayerBase {
           altKm: Math.round(pos.altKm * 10) / 10,
           velocityKmS: Math.round(pos.velocityKmS * 1000) / 1000,
           group: rec.group,
+          country: derived.country,
+          countryBucket: satcatRec ? countryBucket(satcatRec.owner) : 'other',
+          purpose: derived.purpose,
+          status: derived.status,
+          launchDate: derived.launchDate,
+          objectType: satcatRec?.objectType ?? 'UNKNOWN',
         },
       });
     }

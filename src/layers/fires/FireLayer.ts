@@ -4,6 +4,7 @@ import { fireManifest } from './manifest';
 import { PointCloudRenderer } from '../../rendering/renderers/PointCloudRenderer';
 import { parseCsv } from '../../pipeline/parsers/CsvParser';
 import { config } from '../../config';
+import { clusterHotspots, describeClusterLocation } from './fireCluster';
 
 export class FireLayer extends LayerBase {
   readonly manifest = fireManifest;
@@ -52,6 +53,23 @@ export class FireLayer extends LayerBase {
           satellite: rec.satellite ?? 'N/A',
         },
       });
+    }
+
+    // Spatial clustering: tag each hotspot that belongs to a cluster with
+    // complex-level metadata so the detail card can tell the user "this pixel
+    // is part of a 240-hotspot fire complex near X", not just "Fire at 56.8,-122.1".
+    const { clusters } = clusterHotspots(features);
+    const byId = new Map<string, NormalizedFeature>(features.map((f) => [f.id, f]));
+    for (const cluster of clusters) {
+      const complexLabel = describeClusterLocation(cluster);
+      for (const memberId of cluster.memberIds) {
+        const f = byId.get(memberId);
+        if (!f) continue;
+        f.properties.clusterId = cluster.id;
+        f.properties.clusterSize = cluster.hotspotCount;
+        f.properties.clusterTotalFrp = Math.round(cluster.totalFrp);
+        f.properties.clusterLabel = complexLabel;
+      }
     }
 
     return features;

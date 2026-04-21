@@ -20,6 +20,7 @@ export const aircraftManifest: LayerManifest = {
     style: {
       attribute: 'category',
       stops: [
+        { value: 'interesting', color: '#fbbf24', size: 9 },
         { value: 'high', color: '#60a5fa', size: 6 },
         { value: 'mid', color: '#38bdf8', size: 6 },
         { value: 'low', color: '#22d3ee', size: 6 },
@@ -42,6 +43,7 @@ export const aircraftManifest: LayerManifest = {
   interaction: {
     detailFields: [
       { label: 'Callsign', path: 'label', format: 'text' },
+      { label: 'Why interesting', path: 'properties.interestReason', format: 'text' },
       { label: 'ICAO24', path: 'id', format: 'text' },
       { label: 'Country', path: 'properties.country', format: 'text' },
       { label: 'Altitude', path: 'properties.altitude', format: 'text' },

@@ -2,10 +2,10 @@ import type { LayerManifest } from '../../core/types';
 
 export const weatherManifest: LayerManifest = {
   id: 'weather',
-  name: 'Weather',
+  name: 'Precipitation',
   category: 'weather',
   icon: 'weather',
-  description: 'Weather overlay from OpenWeatherMap (precipitation, clouds)',
+  description: 'OpenWeatherMap precipitation tiles. For the cloud-cover story, enable Cloud imagery instead.',
 
   source: {
     url: '',

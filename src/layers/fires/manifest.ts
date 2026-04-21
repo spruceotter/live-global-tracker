@@ -36,6 +36,9 @@ export const fireManifest: LayerManifest = {
 
   interaction: {
     detailFields: [
+      { label: 'Complex', path: 'properties.clusterLabel', format: 'text' },
+      { label: 'Hotspots in complex', path: 'properties.clusterSize', format: 'number' },
+      { label: 'Complex total FRP (MW)', path: 'properties.clusterTotalFrp', format: 'number' },
       { label: 'Latitude', path: 'lat', format: 'latlon' },
       { label: 'Longitude', path: 'lon', format: 'latlon' },
       { label: 'FRP (MW)', path: 'properties.frp', format: 'number' },

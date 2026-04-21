@@ -22,8 +22,16 @@ const STEPS: Step[] = [
     highlight: '.header-search-hint',
   },
   {
+    title: 'Your Layer',
+    description: 'Drop a geotagged photo on the globe. We read the EXIF locally and show you what was happening there: who was overhead, what the weather was, the moon phase. Photos never leave your browser.',
+  },
+  {
+    title: 'Lightning, live',
+    description: 'Toggle the Lightning layer to see real-time strike detections from the Blitzortung community network. Each flash is a real bolt within the last second.',
+  },
+  {
     title: 'Data Sources',
-    description: 'Click the gear icon to manage data sources, add API keys, or connect your own custom data.',
+    description: 'Click the gear icon to manage data sources, add API keys, or connect your own custom data. Click "Sources" at the bottom-left to see attributions.',
     highlight: '.app-header',
   },
   {

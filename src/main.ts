@@ -13,7 +13,9 @@ import './styles/measure.css';
 import './styles/extras.css';
 import './styles/responsive.css';
 import './styles/cesium-overrides.css';
+import './styles/your-layer.css';
 
+import * as Cesium from 'cesium';
 import { registerBuiltinRenderers } from './rendering/registerBuiltins';
 import { initViewer } from './viewer/initViewer';
 import { playCameraIntro } from './viewer/cameraSequence';
@@ -32,6 +34,11 @@ import { NightLightsLayer } from './layers/nightlights/NightLightsLayer';
 import { VolcanoLayer } from './layers/volcanoes/VolcanoLayer';
 import { WeatherAlertsLayer } from './layers/weatheralerts/WeatherAlertsLayer';
 import { GdacsLayer } from './layers/gdacs/GdacsLayer';
+import { LightningLayer } from './layers/lightning/LightningLayer';
+import { GoesLayer } from './layers/goes/GoesLayer';
+import { LaunchesLayer } from './layers/launches/LaunchesLayer';
+import { WebcamsLayer } from './layers/webcams/WebcamsLayer';
+import { WebcamPlayer } from './ui/WebcamPlayer';
 import { AppHeader } from './ui/AppHeader';
 import { LayerPanel } from './ui/LayerPanel';
 import { InfoCard } from './ui/InfoCard';
@@ -52,6 +59,12 @@ import { ExportTools } from './ui/ExportTools';
 import { KeyboardShortcuts } from './ui/KeyboardShortcuts';
 import { Bookmarks } from './ui/Bookmarks';
 import { CustomSourceWizard } from './ui/CustomSourceWizard';
+import { EphemeralPinStore, type EphemeralPin } from './core/EphemeralPin';
+import { ContextRibbon } from './ui/ContextRibbon';
+import { PhotoDropZone } from './ui/PhotoDropZone';
+import { PrivacyModal } from './ui/PrivacyModal';
+import { setSatRecordsProvider } from './services/historical/historicalTle';
+import { AttributionPanel } from './ui/AttributionPanel';
 
 function showWebGLError(): void {
   const container = document.getElementById('cesiumContainer');
@@ -92,7 +105,8 @@ async function main() {
   const manager = new LayerManager();
   manager.setViewer(viewer);
 
-  manager.register(new SatelliteLayer());
+  const satelliteLayer = new SatelliteLayer();
+  manager.register(satelliteLayer);
   manager.register(new AircraftLayer());
   manager.register(new EarthquakeLayer());
   manager.register(new FireLayer());
@@ -101,6 +115,46 @@ async function main() {
   manager.register(new VolcanoLayer());
   manager.register(new WeatherAlertsLayer());
   manager.register(new GdacsLayer());
+  const lightningLayer = new LightningLayer();
+  const goesLayer = new GoesLayer();
+  manager.register(lightningLayer);
+  manager.register(goesLayer);
+  manager.register(new LaunchesLayer());
+  manager.register(new WebcamsLayer());
+
+  // GOES cloud imagery mutually excludes the OpenWeatherMap "Precipitation"
+  // tiles — two translucent overlays stacked muddy up the globe. Whichever
+  // the user toggles on wins; the other switches off transparently.
+  let mutexBusy = false;
+  const weatherLayer = manager.getById('weather');
+  if (weatherLayer) {
+    const handleToggle = (turnedOn: 'goes-clouds' | 'weather') => {
+      if (mutexBusy) return;
+      mutexBusy = true;
+      try {
+        if (turnedOn === 'goes-clouds' && weatherLayer.isVisible()) {
+          weatherLayer.setVisible(false);
+        } else if (turnedOn === 'weather' && goesLayer.isVisible()) {
+          goesLayer.setVisible(false);
+        }
+      } finally {
+        mutexBusy = false;
+      }
+    };
+    // Simple observer: poll visibility flags on the next tick after toggles.
+    // LayerManager doesn't expose change events today; a short poll is good
+    // enough for a two-way exclusion and avoids invasive refactors.
+    let lastGoes = goesLayer.isVisible();
+    let lastWeather = weatherLayer.isVisible();
+    setInterval(() => {
+      const nowGoes = goesLayer.isVisible();
+      const nowWeather = weatherLayer.isVisible();
+      if (nowGoes && !lastGoes) handleToggle('goes-clouds');
+      if (nowWeather && !lastWeather) handleToggle('weather');
+      lastGoes = nowGoes;
+      lastWeather = nowWeather;
+    }, 250);
+  }
 
   // Data Source Manager (initialize before layers so persisted configs are available)
   const catalog = new CatalogRegistry();
@@ -160,17 +214,95 @@ async function main() {
   );
   appHeader.setHelpAction(() => shortcuts.toggle());
 
+  // --- Your Layer ---
+  // EXIF photo drop → ephemeral pin → historical context ribbon.
+  // Pin rendering lives in a dedicated CustomDataSource so pins survive the
+  // layer-manager toggle model (they are user artifacts, not a data feed).
+  const pinStore = new EphemeralPinStore();
+  new PrivacyModal();
+  const ribbon = new ContextRibbon(pinStore);
+  new PhotoDropZone(viewer, pinStore, ribbon);
+
+  // Allow the historical-TLE provider to read the already-loaded satRecords
+  setSatRecordsProvider(() => satelliteLayer.getSatRecords());
+
+  // Render pins on the globe. Subscribe to store changes and rebuild entities.
+  const pinDataSource = new Cesium.CustomDataSource('your-layer-pins');
+  viewer.dataSources.add(pinDataSource);
+  const renderPins = (pins: EphemeralPin[]) => {
+    pinDataSource.entities.removeAll();
+    for (const pin of pins) {
+      pinDataSource.entities.add({
+        id: pin.id,
+        position: Cesium.Cartesian3.fromDegrees(pin.lon, pin.lat),
+        billboard: {
+          image: pinSvgDataUrl(),
+          width: 32,
+          height: 40,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: {
+          text: pin.photoName,
+          font: '12px Inter, sans-serif',
+          pixelOffset: new Cesium.Cartesian2(0, -44),
+          fillColor: Cesium.Color.fromCssColorString('#e0e6f0'),
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          scale: 0.85,
+        },
+        properties: new Cesium.PropertyBag({
+          layerId: 'your-layer',
+          featureId: pin.id,
+        }),
+      });
+    }
+    viewer.scene.requestRender();
+  };
+  pinStore.subscribe(renderPins);
+  renderPins(pinStore.list()); // Initial render for any pins restored from sessionStorage
+
   // Viewport ring
   const ring = document.createElement('div');
   ring.className = 'viewport-ring active';
   document.body.appendChild(ring);
 
+  // Required upstream credits — keeps NASA / NOAA / Blitzortung ToS happy
+  new AttributionPanel();
+
+  // Live webcam player (listens for 'webcam:play' dispatched by click handler)
+  new WebcamPlayer();
+
   // First-time onboarding (after all UI is mounted)
   new Onboarding();
+
+  // Debug exposure — let me test SATCAT enrichment from the browser console
+  // without having to synthesize Cesium pick events. Remove before ship.
+  (window as unknown as Record<string, unknown>).__lgt = { viewer, manager, infoCard, pinStore, ribbon };
 
   console.log(
     `Live Global Tracker initialized with ${manager.getAll().reduce((s, l) => s + l.getFeatureCount(), 0).toLocaleString()} entities`
   );
+}
+
+/** Inline SVG pin icon so we don't need an asset import. Gradient fill
+ * keeps it recognizable as a "Your Layer" artifact vs. any data-layer dot. */
+function pinSvgDataUrl(): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="32" height="40">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#a78bfa"/>
+        <stop offset="1" stop-color="#60a5fa"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#g)" stroke="#0a0e17" stroke-width="2"
+      d="M16 2 C 8 2, 2 8, 2 16 C 2 24, 16 38, 16 38 C 16 38, 30 24, 30 16 C 30 8, 24 2, 16 2 Z"/>
+    <circle cx="16" cy="15" r="5" fill="#0a0e17"/>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 main().catch(console.error);
